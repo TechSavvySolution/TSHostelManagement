@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "992847449396",
+    "project_id": "ts-hostel-management",
+    "storage_bucket": "ts-hostel-management.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:992847449396:android:3f79528b6f3cbd31d0e961",
+        "android_client_info": {
+          "package_name": "com.techsavvy.tshostelmanagement"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBO_1K2kgI1Evs2m_JVjtSyUYSRPKChKTg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
