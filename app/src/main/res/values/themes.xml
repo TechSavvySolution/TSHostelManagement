@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <style name="Theme.TSHostelManagement.AppCompat" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="colorPrimary">#0B1C2D</item>
+        <item name="colorPrimaryDark">#08121D</item>
+        <item name="colorAccent">#1ABC9C</item>
+    </style>
 
     <style name="Theme.TSHostelManagement" parent="android:Theme.Material.Light.NoActionBar" />
 </resources>
