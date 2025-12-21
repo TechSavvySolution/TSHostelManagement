@@ -7,7 +7,8 @@ data class User (
     val password : String,
     //STAFF, HOSTELER, ADMIN
     val role : String,
-    val name : String
+    val name : String,
+    val createdAt : Long = System.currentTimeMillis()
 ){
-    constructor():this("","","","","","")
+    constructor():this("","","","","","",System.currentTimeMillis())
 }

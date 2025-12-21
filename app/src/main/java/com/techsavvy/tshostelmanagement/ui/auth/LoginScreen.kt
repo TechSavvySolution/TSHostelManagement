@@ -131,7 +131,14 @@ fun LoginScreen(navController: NavHostController) {
 
                 // LOGIN BUTTON
                 Button(
-                    onClick = {navController.navigate("home")
+                    onClick = {
+
+                        navController.navigate("home")
+                        // Dependency Injection
+                        // AuthViewModel
+                        // login()
+                        // entrypoint discussion
+                        // admin, staff, hosteler
                               },
                     modifier = Modifier
                         .fillMaxWidth()

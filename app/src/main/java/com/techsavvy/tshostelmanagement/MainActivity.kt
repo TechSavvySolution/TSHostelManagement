@@ -7,6 +7,7 @@ import androidx.navigation.compose.rememberNavController
 import com.techsavvy.tshostelmanagement.navigation.NavGraph
 import com.techsavvy.tshostelmanagement.ui.theme.TSHostelManagementTheme
 
+//@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
