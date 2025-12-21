@@ -3,23 +3,17 @@ package com.techsavvy.tshostelmanagement
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.rememberNavController
+import com.techsavvy.tshostelmanagement.navigation.NavGraph
 import com.techsavvy.tshostelmanagement.ui.theme.TSHostelManagementTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContent {
             TSHostelManagementTheme {
-                Text("TS Hostel Management")
+                val navController = rememberNavController()
+                NavGraph(navController = navController)
             }
         }
     }
