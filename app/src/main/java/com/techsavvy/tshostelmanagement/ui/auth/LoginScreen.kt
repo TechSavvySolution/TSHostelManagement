@@ -11,7 +11,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
@@ -28,6 +27,8 @@ fun LoginScreen(navController: NavHostController) {
 
     val scale = remember { Animatable(0.7f) }
     val alpha = remember { Animatable(0f) }
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
         scale.animateTo(1f, tween(800))
@@ -37,15 +38,7 @@ fun LoginScreen(navController: NavHostController) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    listOf(
-                        Color(0xFF0B3C49),
-                        Color(0xFF0F4C5C),
-                        Color(0xFF145A6A)
-                    )
-                )
-            )
+            .background(Color(0xFF020617))
     ) {
 
         Column(
@@ -72,7 +65,7 @@ fun LoginScreen(navController: NavHostController) {
             Spacer(modifier = Modifier.height(20.dp))
 
             Text(
-                text = "TS Hostel Management",
+                text = "TS HOSTEL MANAGEMENT",
                 color = Color.White,
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold
@@ -92,7 +85,7 @@ fun LoginScreen(navController: NavHostController) {
                     .fillMaxWidth()
                     .shadow(20.dp, RoundedCornerShape(28.dp))
                     .background(
-                        Color.White.copy(alpha = 0.97f),
+                        Color(0xFF0F172A),
                         RoundedCornerShape(28.dp)
                     )
                     .padding(24.dp),
@@ -101,15 +94,15 @@ fun LoginScreen(navController: NavHostController) {
 
                 // EMAIL FIELD
                 TextField(
-                    value = "",
-                    onValueChange = {},
+                    value = email,
+                    onValueChange = { email = it },
                     placeholder = { Text("Email address") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = Color(0xFFF2F6F7),
                         unfocusedContainerColor = Color(0xFFF2F6F7),
-                        focusedIndicatorColor = Color.Transparent,
+                        focusedIndicatorColor = Color(0xFF7DD3FC),
                         unfocusedIndicatorColor = Color.Transparent
                     ),
                     shape = RoundedCornerShape(14.dp)
@@ -119,8 +112,8 @@ fun LoginScreen(navController: NavHostController) {
 
                 // PASSWORD FIELD
                 TextField(
-                    value = "",
-                    onValueChange = {},
+                    value = password,
+                    onValueChange = { password = it },
                     placeholder = { Text("Password") },
                     visualTransformation = PasswordVisualTransformation(),
                     modifier = Modifier.fillMaxWidth(),
@@ -128,7 +121,7 @@ fun LoginScreen(navController: NavHostController) {
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = Color(0xFFF2F6F7),
                         unfocusedContainerColor = Color(0xFFF2F6F7),
-                        focusedIndicatorColor = Color.Transparent,
+                        focusedIndicatorColor = Color(0xFF7DD3FC),
                         unfocusedIndicatorColor = Color.Transparent
                     ),
                     shape = RoundedCornerShape(14.dp)
@@ -145,13 +138,14 @@ fun LoginScreen(navController: NavHostController) {
                         .height(54.dp),
                     shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF0F4C5C)
+                        containerColor = Color(0xFF7DD3FC)
                     )
                 ) {
                     Text(
                         text = "LOGIN",
                         fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black
                     )
                 }
             }
