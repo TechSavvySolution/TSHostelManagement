@@ -7,6 +7,7 @@ import androidx.navigation.compose.composable
 import com.techsavvy.tshostelmanagement.ui.auth.LoginScreen
 import com.techsavvy.tshostelmanagement.ui.home.HomeScreen
 
+
 @Composable
 fun NavGraph(navController: NavHostController) {
 
