@@ -8,7 +8,8 @@ data class User (
     //STAFF, HOSTELER, ADMIN
     val role : String,
     val name : String,
+    val active : Boolean,
     val createdAt : Long = System.currentTimeMillis()
 ){
-    constructor():this("","","","","","",System.currentTimeMillis())
+    constructor():this("","","","","","",true,System.currentTimeMillis())
 }

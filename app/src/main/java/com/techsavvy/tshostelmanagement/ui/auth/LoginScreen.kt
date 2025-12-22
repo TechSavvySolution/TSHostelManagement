@@ -1,5 +1,6 @@
 package com.techsavvy.tshostelmanagement.ui.auth
 
+import android.widget.Toast
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -13,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -20,15 +22,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.techsavvy.tshostelmanagement.R
 import androidx.navigation.NavHostController
+import com.techsavvy.tshostelmanagement.navigation.Screens
 
 
 @Composable
-fun LoginScreen(navController: NavHostController) {
+fun LoginScreen(navController: NavHostController, viewModel: AuthViewModel) {
 
     val scale = remember { Animatable(0.7f) }
     val alpha = remember { Animatable(0f) }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+
+
+
+
+
 
     LaunchedEffect(Unit) {
         scale.animateTo(1f, tween(800))
@@ -132,14 +140,8 @@ fun LoginScreen(navController: NavHostController) {
                 // LOGIN BUTTON
                 Button(
                     onClick = {
-
-                        navController.navigate("home")
-                        // Dependency Injection
-                        // AuthViewModel
-                        // login()
-                        // entrypoint discussion
-                        // admin, staff, hosteler
-                              },
+                        viewModel.login(email, password)
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(54.dp),
@@ -148,12 +150,39 @@ fun LoginScreen(navController: NavHostController) {
                         containerColor = Color(0xFF7DD3FC)
                     )
                 ) {
-                    Text(
-                        text = "LOGIN",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black
-                    )
+                    viewModel.isLoading.collectAsState().value.let {
+                        if (it) {
+                            CircularProgressIndicator()
+                        } else {
+                            Text(
+                                text = "LOGIN",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Black
+                            )
+                        }
+                    }
+                    val context = LocalContext.current
+
+                    viewModel.user.collectAsState().value.let {
+                        if (it != null) {
+
+                            if(!it.active){
+                                LaunchedEffect(true) {
+                                    Toast.makeText(context, "You're account is disabled.", Toast.LENGTH_SHORT).show()
+                                }
+                                return@Button
+                            }
+
+                            LaunchedEffect(true) {
+                                when (it.role) {
+                                    "ADMIN" -> navController.navigate(Screens.Admin.Home.route)
+                                    "STAFF" -> navController.navigate(Screens.Staff.Home.route)
+                                    "HOSTELER" -> navController.navigate(Screens.Hosteler.Home.route)
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

@@ -1,11 +1,12 @@
 package com.techsavvy.tshostelmanagement.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.techsavvy.tshostelmanagement.ui.admin.home.HomeScreen
 import com.techsavvy.tshostelmanagement.ui.auth.LoginScreen
-import com.techsavvy.tshostelmanagement.ui.home.HomeScreen
 
 
 @Composable
@@ -13,15 +14,15 @@ fun NavGraph(navController: NavHostController) {
 
     NavHost(
         navController = navController,
-        startDestination = "login"
+        startDestination = Screens.Login.route
     ) {
 
-        composable("login") {
-            LoginScreen(navController)
+        composable(Screens.Login.route) {
+            LoginScreen(navController, hiltViewModel())
         }
-
-        composable("home") {
-            HomeScreen()
+        // ALL HOMESCREENS FROM ALL ROLES
+        composable(Screens.Admin.Home.route){
+            HomeScreen(navController,hiltViewModel())
         }
     }
 }
