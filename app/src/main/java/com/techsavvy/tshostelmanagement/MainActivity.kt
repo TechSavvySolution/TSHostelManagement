@@ -1,5 +1,6 @@
 package com.techsavvy.tshostelmanagement
 
+import dagger.hilt.android.AndroidEntryPoint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent

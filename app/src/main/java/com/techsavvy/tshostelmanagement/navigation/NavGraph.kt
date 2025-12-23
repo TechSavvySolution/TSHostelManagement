@@ -22,7 +22,7 @@ fun NavGraph(navController: NavHostController) {
         }
         // ALL HOMESCREENS FROM ALL ROLES
         composable(Screens.Admin.Home.route){
-            HomeScreen(navController,hiltViewModel())
+            HomeScreen()
         }
     }
 }
