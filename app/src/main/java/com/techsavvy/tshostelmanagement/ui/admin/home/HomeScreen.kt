@@ -12,6 +12,7 @@ fun HomeScreen() {
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
+
         Text(
             text = "Welcome to TS Hostel Management",
             style = MaterialTheme.typography.headlineSmall

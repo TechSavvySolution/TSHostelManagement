@@ -1,5 +1,6 @@
 package com.techsavvy.tshostelmanagement.ui.auth
 
+import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import com.google.firebase.auth.FirebaseAuth
@@ -37,6 +38,7 @@ class AuthViewModel @Inject constructor(
                             _isLoading.value = false
                             if (it.isSuccessful) {
                                 _user.value = it.result.toObject<User>()
+                                Log.d("USER VALUE",user.value.toString())
                             } else {
                                 it.exception?.printStackTrace()
                             }

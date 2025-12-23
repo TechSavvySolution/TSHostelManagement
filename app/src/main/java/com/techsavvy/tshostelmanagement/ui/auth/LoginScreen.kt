@@ -171,14 +171,13 @@ fun LoginScreen(navController: NavHostController, viewModel: AuthViewModel) {
                                 LaunchedEffect(true) {
                                     Toast.makeText(context, "You're account is disabled.", Toast.LENGTH_SHORT).show()
                                 }
-                                return@Button
-                            }
-
-                            LaunchedEffect(true) {
-                                when (it.role) {
-                                    "ADMIN" -> navController.navigate(Screens.Admin.Home.route)
-                                    "STAFF" -> navController.navigate(Screens.Staff.Home.route)
-                                    "HOSTELER" -> navController.navigate(Screens.Hosteler.Home.route)
+                            }else {
+                                LaunchedEffect(true) {
+                                    when (it.role) {
+                                        "ADMIN" -> navController.navigate(Screens.Admin.Home.route)
+                                        "STAFF" -> navController.navigate(Screens.Staff.Home.route)
+                                        "HOSTELER" -> navController.navigate(Screens.Hosteler.Home.route)
+                                    }
                                 }
                             }
                         }
