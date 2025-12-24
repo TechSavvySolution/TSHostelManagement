@@ -44,42 +44,43 @@ android {
         compose = true
     }
 }
-
 dependencies {
 
-        // Core
-        implementation("androidx.core:core-ktx:1.13.1")
-        implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.4")
+    // Core
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.kotlinx.coroutines.core)
+    // Compose
+    implementation(libs.androidx.activity.compose)
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.graphics)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.compose.material3)
 
-        // Compose
-        implementation("androidx.activity:activity-compose:1.9.2")
-        implementation(platform("androidx.compose:compose-bom:2024.09.01"))
-        implementation("androidx.compose.ui:ui")
-        implementation("androidx.compose.ui:ui-graphics")
-        implementation("androidx.compose.ui:ui-tooling-preview")
-        implementation("androidx.compose.material3:material3")
+    // This line fixes the "Unresolved reference" error
+    implementation(libs.androidx.material.icons.extended)
 
-        // Navigation Compose
-        implementation("androidx.navigation:navigation-compose:2.7.7")
+    // Navigation Compose
+    implementation("androidx.navigation:navigation-compose:2.7.7")
 
-        // Testing
-        testImplementation("junit:junit:4.13.2")
-        androidTestImplementation("androidx.test.ext:junit:1.1.5")
-        androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    // Testing
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    debugImplementation(libs.androidx.compose.ui.tooling)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
 
     //Firebase
-    implementation(platform("com.google.firebase:firebase-bom:34.7.0")) // Use latest BoM version
-    implementation("com.google.firebase:firebase-auth") // No version needed here
-    implementation("com.google.firebase:firebase-firestore") //
-
+    implementation(platform("com.google.firebase:firebase-bom:34.7.0"))
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-firestore")
 
     //dependency injection
-    implementation (libs.androidx.hilt.navigation.compose)
-    implementation (libs.hilt.android)
+    implementation(libs.androidx.hilt.navigation.compose)
+    implementation(libs.hilt.android)
     kapt(libs.hilt.android.compiler)
     kapt(libs.androidx.hilt.compiler)
-   // hilt dependency
-    implementation("com.google.dagger:hilt-android:2.48")
-    kapt("com.google.dagger:hilt-compiler:2.48")
-
 }
