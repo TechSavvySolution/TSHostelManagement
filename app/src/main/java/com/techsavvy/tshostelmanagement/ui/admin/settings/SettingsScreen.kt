@@ -46,18 +46,18 @@ fun SettingsScreen(navController: NavController) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint = Color(0xFF0F172A)
+                            tint = Color.White
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White,
-                    titleContentColor = Color(0xFF0F172A)
+                    containerColor = Color(0xFF0F172A),
+                    titleContentColor = Color.White
                 ),
                 modifier = Modifier.shadow(elevation = 2.dp)
             )
         },
-        containerColor = Color(0xFFF8FAFC) // Light gray background from Admin Home
+        containerColor = Color(0xFF020617)
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
@@ -73,7 +73,7 @@ fun SettingsScreen(navController: NavController) {
                         title = "Hostel Rules",
                         subtitle = "View and edit hostel regulations"
                     )
-                    Divider(modifier = Modifier.padding(horizontal = 16.dp))
+                    Divider(modifier = Modifier.padding(horizontal = 16.dp), color = Color.White.copy(alpha = 0.2f))
                     SettingsItem(
                         icon = Icons.Default.Roofing,
                         title = "Room Capacity Limits",
@@ -101,7 +101,7 @@ fun SettingsScreen(navController: NavController) {
                         title = "Update Profile",
                         subtitle = "Change your personal information"
                     )
-                    Divider(modifier = Modifier.padding(horizontal = 16.dp))
+                    Divider(modifier = Modifier.padding(horizontal = 16.dp), color = Color.White.copy(alpha = 0.2f))
                     SettingsItem(
                         icon = Icons.Default.Password,
                         title = "Change Password",
@@ -122,12 +122,12 @@ fun SettingsGroup(
         Text(
             text = title.uppercase(),
             style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.primary,
+            color = Color(0xFF7DD3FC),
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         )
         Card(
             shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF0F172A)),
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column {
@@ -151,13 +151,13 @@ fun SettingsItem(
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(imageVector = icon, contentDescription = title, tint = MaterialTheme.colorScheme.primary)
+        Icon(imageVector = icon, contentDescription = title, tint = Color(0xFF7DD3FC))
         Spacer(Modifier.width(16.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = title, fontWeight = FontWeight.SemiBold)
-            Text(text = subtitle, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+            Text(text = title, fontWeight = FontWeight.SemiBold, color = Color.White)
+            Text(text = subtitle, style = MaterialTheme.typography.bodySmall, color = Color.White.copy(alpha = 0.75f))
         }
-        Icon(imageVector = Icons.Default.ChevronRight, contentDescription = null, tint = Color.Gray)
+        Icon(imageVector = Icons.Default.ChevronRight, contentDescription = null, tint = Color.White.copy(alpha = 0.75f))
     }
 }
 
@@ -176,18 +176,20 @@ fun SettingsSwitchItem(
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(imageVector = icon, contentDescription = title, tint = MaterialTheme.colorScheme.primary)
+        Icon(imageVector = icon, contentDescription = title, tint = Color(0xFF7DD3FC))
         Spacer(Modifier.width(16.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = title, fontWeight = FontWeight.SemiBold)
-            Text(text = subtitle, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+            Text(text = title, fontWeight = FontWeight.SemiBold, color = Color.White)
+            Text(text = subtitle, style = MaterialTheme.typography.bodySmall, color = Color.White.copy(alpha = 0.75f))
         }
         Switch(
             checked = checked, 
             onCheckedChange = onCheckedChange,
             colors = SwitchDefaults.colors(
-                checkedThumbColor = MaterialTheme.colorScheme.primary,
-                checkedTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                checkedThumbColor = Color(0xFF7DD3FC),
+                checkedTrackColor = Color(0xFF7DD3FC).copy(alpha = 0.5f),
+                uncheckedThumbColor = Color.Gray,
+                uncheckedTrackColor = Color.Gray.copy(alpha = 0.5f)
             )
         )
     }
