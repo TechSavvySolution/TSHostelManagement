@@ -1,4 +1,4 @@
-package com.techsavvy.tshostelmanagement.ui.admin.hostellers
+package com.techsavvy.tshostelmanagement.ui.admin.reports
 
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -7,10 +7,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HostellersScreen() {
+fun ReportsScreen() {
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Hostellers") })
+            TopAppBar(title = { Text("Reports") })
         }
     ) { paddingValues ->
         Box(
@@ -19,7 +19,7 @@ fun HostellersScreen() {
                 .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            Text("Hostellers Module")
+            Text("Reports Module")
         }
     }
 }

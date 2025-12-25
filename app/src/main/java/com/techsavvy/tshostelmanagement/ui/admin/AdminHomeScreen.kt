@@ -1,447 +1,287 @@
-
 package com.techsavvy.tshostelmanagement.ui.admin
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.InfiniteRepeatableSpec
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.rounded.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.techsavvy.tshostelmanagement.R
 import com.techsavvy.tshostelmanagement.navigation.Screens
+import com.techsavvy.tshostelmanagement.ui.theme.TSHostelManagementTheme
+import kotlinx.coroutines.delay
 
-// Main Composable
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AdminHomeScreen(
-    navController: NavController,
-    viewModel: AdminViewModel = hiltViewModel()
-) {
-    val uiState by viewModel.uiState.collectAsState()
-
-    // Collect analytics data
-    val totalBuildings by viewModel.totalBuildings.collectAsState()
-    val totalFloors by viewModel.totalFloors.collectAsState()
-    val totalRooms by viewModel.totalRooms.collectAsState()
-    val totalHostellers by viewModel.totalHostellers.collectAsState()
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.hsmlogo),
-                            contentDescription = "Logo",
-                            tint = Color.Unspecified,
-                            modifier = Modifier.size(32.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Admin Dashboard", fontWeight = FontWeight.Bold)
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { /*TODO*/ }) {
-                        Icon(Icons.Default.Notifications, contentDescription = "Notifications")
-                    }
-                    IconButton(onClick = { navController.navigate(Screens.Admin.Settings.route) }) {
-                        Icon(Icons.Default.Settings, contentDescription = "Settings")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF0F172A), // Card background from Login
-                    titleContentColor = Color.White,
-                    actionIconContentColor = Color.White
-                )
-            )
-        },
-        containerColor = Color(0xFF020617) // Main background from Login
-    ) { paddingValues ->
-        LazyColumn(
+fun AdminHomeScreen(navController: NavController) {
+    TSHostelManagementTheme {
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+                .background(Color(0xFF010413))
         ) {
-            item { AnalyticsSection(totalBuildings, totalFloors, totalRooms, totalHostellers) }
-            item { ManagementMenuSection(navController) }
-            item { InfrastructureHeader(viewModel) }
-
-            items(uiState.buildings, key = { it.id }) { building ->
-                BuildingItem(building, uiState, viewModel)
+            GridBackground()
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(vertical = 8.dp)
+            ) {
+                Header(navController = navController)
+                Spacer(modifier = Modifier.height(24.dp))
+                AnalyticsCarousel()
+                Spacer(modifier = Modifier.height(24.dp))
+                ModuleGrid(navController = navController)
             }
         }
     }
-
-    // --- Dialogs ---
-    if (uiState.showAddBuildingDialog) AddBuildingDialog(viewModel)
-    if (uiState.showAddFloorDialog) AddFloorDialog(viewModel, uiState)
-    if (uiState.showAddRoomDialog) AddRoomDialog(viewModel, uiState)
 }
 
-// --- Sections ---
 @Composable
-fun AnalyticsSection(totalBuildings: Int, totalFloors: Int, totalRooms: Int, totalHostellers: Int) {
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text("Analytics", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = Color.White)
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            AnalyticsCard("Total Buildings", totalBuildings.toString(), Icons.Default.Apartment, Modifier.weight(1f))
-            AnalyticsCard("Active Floors", totalFloors.toString(), Icons.Default.Layers, Modifier.weight(1f))
+fun GridBackground() {
+    val infiniteTransition = rememberInfiniteTransition(label = "grid-bg")
+    val offset by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = InfiniteRepeatableSpec(tween(5000, easing = LinearEasing)),
+        label = "grid-offset"
+    )
+
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        val gridSize = 60.dp.toPx()
+        val gridColor = Color.White.copy(alpha = 0.05f)
+        val animatedOffset = offset * gridSize
+
+        for (i in 0..size.width.toInt() / gridSize.toInt()) {
+            drawLine(
+                color = gridColor,
+                start = Offset(i * gridSize, 0f),
+                end = Offset(i * gridSize, size.height),
+                strokeWidth = 1f
+            )
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            AnalyticsCard("Total Rooms", totalRooms.toString(), Icons.Default.Bed, Modifier.weight(1f))
-            AnalyticsCard("Hostellers", totalHostellers.toString(), Icons.Default.Person, Modifier.weight(1f))
+        for (i in 0..size.height.toInt() / gridSize.toInt()) {
+            drawLine(
+                color = gridColor,
+                start = Offset(0f, i * gridSize + animatedOffset - gridSize),
+                end = Offset(size.width, i * gridSize + animatedOffset - gridSize),
+                strokeWidth = 1f
+            )
         }
     }
 }
 
 @Composable
-fun ManagementMenuSection(navController: NavController) {
-    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-        MenuCard("Hostellers", Icons.Default.Person, Modifier.weight(1f)) { navController.navigate(Screens.Admin.Hostellers.route) }
-        MenuCard("Staff", Icons.Default.Badge, Modifier.weight(1f)) { navController.navigate(Screens.Admin.Staff.route) }
-    }
-}
-
-@Composable
-fun InfrastructureHeader(viewModel: AdminViewModel) {
+fun Header(navController: NavController) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text("Infrastructure", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = Color.White)
-        Button(
-            onClick = { viewModel.showDialog("building", true) },
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7DD3FC)) // Accent color
-        ) {
-            Icon(Icons.Default.Add, contentDescription = "Add Building", tint = Color.Black)
-            Spacer(Modifier.width(4.dp))
-            Text("Add Block", color = Color.Black)
-        }
-    }
-}
-
-// --- Infrastructure Items ---
-@Composable
-fun BuildingItem(building: Building, uiState: AdminUiState, viewModel: AdminViewModel) {
-    val isExpanded = uiState.expandedBuildingIds.contains(building.id)
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF0F172A)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        horizontalArrangement = Arrangement.SpaceBetween,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
         Column {
-            InfrastructureRow(
-                text = building.name,
-                icon = Icons.Default.Apartment,
-                isExpanded = isExpanded,
-                isSelected = uiState.selectedBuildingId == building.id,
-                onClick = { viewModel.selectBuilding(building.id) },
-                onExpandClick = { viewModel.toggleBuildingExpansion(building.id) }
-            )
-
-            AnimatedVisibility(visible = isExpanded) {
-                Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp)) {
-                    building.description?.let {
-                        Text(
-                            text = it,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.Gray,
-                            modifier = Modifier.padding(start = 16.dp, top = 4.dp, bottom = 12.dp)
-                        )
-                    }
-                    building.floors.forEach { floor ->
-                        FloorItem(floor, uiState, viewModel)
-                    }
-                    Button(
-                        onClick = { viewModel.showDialog("floor", true) },
-                        modifier = Modifier.padding(start = 24.dp, top = 8.dp),
-                        enabled = uiState.selectedBuildingId == building.id,
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7DD3FC)) // Accent color
-                    ) {
-                        Text("Add Floor", color = Color.Black)
-                    }
-                }
+            Text(text = "TS Hostel Mgt.", color = Color.White.copy(alpha = 0.7f), fontSize = 16.sp)
+            Text(text = "Admin Dashboard", color = Color.White, fontSize = 26.sp, fontWeight = FontWeight.Bold)
+        }
+        Row(
+            modifier = Modifier
+                .clip(RoundedCornerShape(50.dp))
+                .background(Color.White.copy(alpha = 0.05f))
+                .border(1.dp, Brush.linearGradient(listOf(Color.White.copy(alpha = 0.2f), Color.Transparent)), RoundedCornerShape(50.dp))
+                .padding(horizontal = 8.dp)
+        ) {
+            IconButton(onClick = { navController.navigate(Screens.Admin.Settings.route) }) {
+                Icon(imageVector = Icons.Rounded.Settings, contentDescription = "Settings", tint = Color.White.copy(alpha = 0.8f))
+            }
+            IconButton(onClick = { navController.navigate(Screens.Admin.Profile.route) }) {
+                Icon(imageVector = Icons.Rounded.Person, contentDescription = "Profile", tint = Color.White.copy(alpha = 0.8f))
             }
         }
     }
 }
 
 @Composable
-fun FloorItem(floor: Floor, uiState: AdminUiState, viewModel: AdminViewModel) {
-    val isExpanded = uiState.expandedFloorIds.contains(floor.id)
+fun AnalyticsCarousel() {
     Column {
-        InfrastructureRow(
-            text = floor.number,
-            icon = Icons.Default.Layers,
-            isExpanded = isExpanded,
-            isSelected = uiState.selectedFloorId == floor.id,
-            onClick = { viewModel.selectFloor(floor.id) },
-            onExpandClick = { viewModel.toggleFloorExpansion(floor.id) },
-            modifier = Modifier.padding(start = 8.dp)
+        Text(
+            text = "Live Analytics",
+            color = Color.White,
+            fontSize = 22.sp,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(horizontal = 16.dp)
         )
-
-        AnimatedVisibility(visible = isExpanded) {
-            Column(modifier = Modifier.padding(start = 16.dp)) {
-                floor.rooms.forEach { room ->
-                    RoomItem(room)
-                }
-                Button(
-                    onClick = { viewModel.showDialog("room", true) },
-                    modifier = Modifier.padding(start = 24.dp, top = 8.dp, bottom = 12.dp),
-                    enabled = uiState.selectedFloorId == floor.id,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7DD3FC)) // Accent color
-                ) {
-                    Text("Add Room", color = Color.Black)
-                }
+        Spacer(modifier = Modifier.height(16.dp))
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp)
+        ) {
+            items(analyticsItems) { item ->
+                AnalyticsCard(item = item)
             }
         }
     }
 }
 
 @Composable
-fun RoomItem(room: Room) {
-    InfrastructureRow(
-        text = "Room ${room.number}",
-        icon = Icons.Default.Bed,
-        modifier = Modifier.padding(start = 16.dp)
-    )
+fun AnalyticsCard(item: AnalyticsItem) {
+    Box(
+        modifier = Modifier
+            .size(width = 160.dp, height = 120.dp)
+            .clip(RoundedCornerShape(24.dp))
+            .background(Color.White.copy(alpha = 0.05f))
+            .border(1.dp, Brush.linearGradient(listOf(item.color.copy(alpha = 0.4f), Color.Transparent)), RoundedCornerShape(24.dp))
+            .padding(16.dp),
+    ) {
+        Column(modifier=Modifier.fillMaxSize(), verticalArrangement = Arrangement.SpaceBetween) {
+            Row(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(50.dp))
+                    .background(item.color.copy(alpha = 0.1f))
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                 Icon(imageVector = item.icon, contentDescription = item.title, tint = item.color, modifier = Modifier.size(18.dp))
+                 Text(text = item.title, color = Color.White.copy(alpha = 0.8f), fontSize = 14.sp)
+            }
+             Text(text = item.value, color = Color.White, fontSize = 42.sp, fontWeight = FontWeight.Bold)
+        }
+    }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun dialogTextFieldColors() = TextFieldDefaults.colors(
-    focusedTextColor = Color.White,
-    unfocusedTextColor = Color.White,
-    focusedContainerColor = Color.Transparent,
-    unfocusedContainerColor = Color.Transparent,
-    cursorColor = Color(0xFF7DD3FC),
-    focusedIndicatorColor = Color(0xFF7DD3FC),
-    unfocusedIndicatorColor = Color.Gray,
-    focusedLabelColor = Color(0xFF7DD3FC),
-    unfocusedLabelColor = Color.Gray
+fun ModuleGrid(navController: NavController) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        Text(
+            text = "Management Modules",
+            color = Color.White,
+            fontSize = 22.sp,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(3),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.fillMaxSize()
+        ) {
+            itemsIndexed(adminModules) { index, module ->
+                val animatable = remember { Animatable(0f) }
+                 LaunchedEffect(module) {
+                    delay(100L * (index % 3))
+                    animatable.animateTo(1f, tween(600))
+                }
+                ModuleCard(module = module, animation = animatable.value, onClick = { navController.navigate(module.route) })
+            }
+        }
+    }
+}
+
+@Composable
+fun ModuleCard(module: AdminModule, animation: Float, onClick: () -> Unit) {
+    val color = module.color
+    Column(
+        modifier = Modifier
+            .graphicsLayer {
+                scaleY = animation
+                alpha = animation
+            }
+            .clickable { onClick() },
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Box(
+            modifier = Modifier
+                .size(90.dp)
+                .clip(RoundedCornerShape(24.dp))
+                .background(
+                    Brush.radialGradient(
+                        colors = listOf(color.copy(alpha = 0.15f), Color.Transparent),
+                        radius = 150f
+                    )
+                )
+                .background(Color.White.copy(alpha = 0.05f))
+                .border(1.dp, Brush.linearGradient(listOf(color.copy(alpha = 0.4f), Color.Transparent)), RoundedCornerShape(24.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(imageVector = module.icon, contentDescription = null, tint = color.copy(alpha = 0.3f), modifier = Modifier.size(44.dp).offset(2.dp, 2.dp))
+            Icon(imageVector = module.icon, contentDescription = module.title, tint = color, modifier = Modifier.size(44.dp))
+        }
+        Spacer(modifier = Modifier.height(12.dp))
+        Text(text = module.title, color = Color.White.copy(alpha = 0.9f), fontWeight = FontWeight.SemiBold, fontSize = 14.sp, maxLines = 1, textAlign = TextAlign.Center)
+    }
+}
+
+data class AdminModule(
+    val title: String,
+    val route: String,
+    val icon: ImageVector,
+    val color: Color
 )
 
-// --- Dialogs ---
-@Composable
-fun AddBuildingDialog(viewModel: AdminViewModel) {
-    var name by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
-    AlertDialog(
-        containerColor = Color(0xFF0F172A),
-        onDismissRequest = { viewModel.showDialog("building", false) },
-        title = { Text("Add New Block", color = Color.White) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                TextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("Block Name (e.g., Block A)") },
-                    colors = dialogTextFieldColors()
-                )
-                TextField(
-                    value = description,
-                    onValueChange = { description = it },
-                    label = { Text("Description (Optional)") },
-                    colors = dialogTextFieldColors()
-                )
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = {
-                    if (name.isNotBlank()) viewModel.onAddBuilding(name, description.takeIf { it.isNotBlank() })
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7DD3FC))
-            ) {
-                Text("Save", color = Color.Black)
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = { viewModel.showDialog("building", false) }) {
-                Text("Cancel", color = Color(0xFF7DD3FC))
-            }
-        }
-    )
-}
+data class AnalyticsItem(
+    val title: String,
+    val value: String,
+    val icon: ImageVector,
+    val color: Color
+)
 
-@Composable
-fun AddFloorDialog(viewModel: AdminViewModel, uiState: AdminUiState) {
-    var number by remember { mutableStateOf("") }
-    val buildingName = uiState.buildings.find { it.id == uiState.selectedBuildingId }?.name ?: ""
+val adminModules = listOf(
+    AdminModule("Infrastructure", Screens.Admin.Infrastructure.route, Icons.Rounded.Apartment, Color(0xFF22D3EE)),
+    AdminModule("Hostellers", Screens.Admin.Hostellers.route, Icons.Rounded.Group, Color(0xFF4ADE80)),
+    AdminModule("Staff", Screens.Admin.Staff.route, Icons.Rounded.People, Color(0xFFF87171)),
+    AdminModule("Complaints", Screens.Admin.Complaints.route, Icons.Rounded.Report, Color(0xFFFACC15)),
+    AdminModule("Fees", Screens.Admin.Fees.route, Icons.Rounded.Payment, Color(0xFF818CF8)),
+    AdminModule("Reports", Screens.Admin.Reports.route, Icons.Rounded.Assessment, Color(0xFFA78BFA))
+)
 
-    AlertDialog(
-        containerColor = Color(0xFF0F172A),
-        onDismissRequest = { viewModel.showDialog("floor", false) },
-        title = { Text("Add Floor to $buildingName", color = Color.White) },
-        text = {
-            TextField(
-                value = number,
-                onValueChange = { number = it },
-                label = { Text("Floor Number (e.g., 1st Floor)") },
-                colors = dialogTextFieldColors()
-            )
-        },
-        confirmButton = {
-            Button(
-                onClick = { if (number.isNotBlank()) viewModel.onAddFloor(number) },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7DD3FC))
-            ) {
-                Text("Save", color = Color.Black)
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = { viewModel.showDialog("floor", false) }) {
-                Text("Cancel", color = Color(0xFF7DD3FC))
-            }
-        }
-    )
-}
-
-@Composable
-fun AddRoomDialog(viewModel: AdminViewModel, uiState: AdminUiState) {
-    var number by remember { mutableStateOf("") }
-    var capacity by remember { mutableStateOf("") }
-    val floorName = uiState.buildings
-        .firstOrNull { it.id == uiState.selectedBuildingId }?.floors
-        ?.firstOrNull { it.id == uiState.selectedFloorId }?.number ?: ""
-
-    AlertDialog(
-        containerColor = Color(0xFF0F172A),
-        onDismissRequest = { viewModel.showDialog("room", false) },
-        title = { Text("Add Room to $floorName", color = Color.White) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                TextField(
-                    value = number,
-                    onValueChange = { number = it },
-                    label = { Text("Room Number") },
-                    colors = dialogTextFieldColors()
-                )
-                TextField(
-                    value = capacity,
-                    onValueChange = { capacity = it },
-                    label = { Text("Capacity (e.g., 4)") },
-                    colors = dialogTextFieldColors()
-                )
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = {
-                    if (number.isNotBlank() && capacity.isNotBlank()) {
-                        viewModel.onAddRoom(number, capacity.toIntOrNull() ?: 0)
-                    }
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7DD3FC))
-            ) {
-                Text("Save", color = Color.Black)
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = { viewModel.showDialog("room", false) }) {
-                Text("Cancel", color = Color(0xFF7DD3FC))
-            }
-        }
-    )
-}
-
-// --- Reusable Components ---
-@Composable
-fun AnalyticsCard(title: String, value: String, icon: ImageVector, modifier: Modifier = Modifier) {
-    Card(
-        modifier = modifier,
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF0F172A)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Icon(imageVector = icon, contentDescription = title, tint = Color(0xFF7DD3FC), modifier = Modifier.size(32.dp)) // Accent color
-            Column {
-                Text(text = title, style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
-                Text(text = value, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = Color.White)
-            }
-        }
-    }
-}
-
-@Composable
-fun MenuCard(title: String, icon: ImageVector, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    Card(
-        modifier = modifier.clickable(onClick = onClick),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF0F172A)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Icon(imageVector = icon, contentDescription = title, tint = Color(0xFF7DD3FC)) // Accent color
-            Spacer(Modifier.width(8.dp))
-            Text(title, fontWeight = FontWeight.SemiBold, color = Color.White)
-        }
-    }
-}
-
-@Composable
-fun InfrastructureRow(
-    text: String,
-    icon: ImageVector,
-    modifier: Modifier = Modifier,
-    isExpanded: Boolean? = null,
-    isSelected: Boolean = false,
-    onClick: (() -> Unit)? = null,
-    onExpandClick: (() -> Unit)? = null,
-) {
-    val backgroundColor = if (isSelected) Color(0xFF7DD3FC).copy(alpha = 0.1f) else Color.Transparent
-    val rotationAngle by animateFloatAsState(targetValue = if (isExpanded == true) 180f else 0f, label = "")
-
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(backgroundColor, RoundedCornerShape(8.dp))
-            .clickable(enabled = onClick != null) { onClick?.invoke() }
-            .padding(horizontal = 8.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(imageVector = icon, contentDescription = text, tint = Color(0xFF7DD3FC), modifier = Modifier.size(20.dp)) // Accent color
-        Spacer(Modifier.width(12.dp))
-        Text(text, modifier = Modifier.weight(1f), fontWeight = FontWeight.SemiBold, color = Color.White)
-        isExpanded?.let {
-            IconButton(onClick = { onExpandClick?.invoke() }) {
-                Icon(
-                    Icons.Default.ArrowDropDown,
-                    contentDescription = "Expand",
-                    modifier = Modifier.rotate(rotationAngle),
-                    tint = Color.White
-                )
-            }
-        }
-    }
-}
+val analyticsItems = listOf(
+    AnalyticsItem("Hostellers", "0", Icons.Rounded.Group, Color(0xFF4ADE80)),
+    AnalyticsItem("Buildings", "0", Icons.Rounded.Apartment, Color(0xFF22D3EE)),
+    AnalyticsItem("Rooms", "0", Icons.Rounded.Bed, Color(0xFFFACC15)),
+    AnalyticsItem("Staff", "0", Icons.Rounded.People, Color(0xFFF87171))
+)
