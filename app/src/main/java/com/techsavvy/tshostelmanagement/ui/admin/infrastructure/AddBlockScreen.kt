@@ -86,3 +86,25 @@ fun AddBlockScreen(
         }
     }
 }
+//Define Goal -> Admin --> Infrastructure Module
+
+//Detailed Structure explanation
+//start with hostel management system in android jetpack compose with Firebase Firestore
+//now we're working on Infrastructure Module in which below are major entities
+//responsiblities.
+//there will be Block(id,name,image,notes)
+//now we've flours in flour Flour(id,name,image,block_id,notes)
+//the block_id refers to blocks collection and Block
+//now we've Room in rooms we've Room(id,name,capacity,image,flour_id,notes)
+//now the relationship flaw is like Room->Flour->Block
+//so now we're working on this kind of structure.
+//so we can design on centralised viewModel -> InfrastrcutureViewModel
+//and the major InfrastrcutreScreen
+//then we've three different files for adding Block,Flour and Room
+//then in main home screen we need one floting button which opens popup to navigate betwwen
+//these utility screens
+//in home we can show tab like UI in which three tabs Block,Flour,Rooms
+//and one independent UI to see the actual hierarchy and one analytics component
+
+//make attractive and fully responsive ui so admin don't have to worry about it's UX
+//Jetpack Compose Kotlin and dagger hilt dependency Injection
