@@ -9,10 +9,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -24,14 +29,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.techsavvy.tshostelmanagement.data.models.Block
+import com.techsavvy.tshostelmanagement.ui.hostel.HostelViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddFloorScreen(
-    navController: NavController,
-    viewModel: InfrastructureViewModel = hiltViewModel()
-) {
+fun AddFloorScreen(navController: NavController, viewModel: HostelViewModel = hiltViewModel()) {
+    val blocks by viewModel.blocks.collectAsState()
+    var floorName by remember { mutableStateOf("") }
     var floorNumber by remember { mutableStateOf("") }
-    var blockName by remember { mutableStateOf("") }
+    var description by remember { mutableStateOf("") }
+    var selectedBlock by remember { mutableStateOf<Block?>(null) }
+    var expanded by remember { mutableStateOf(false) }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -51,35 +60,64 @@ fun AddFloorScreen(
             )
             Spacer(modifier = Modifier.height(24.dp))
 
+            ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = !expanded }) {
+                OutlinedTextField(
+                    value = selectedBlock?.name ?: "",
+                    onValueChange = { },
+                    readOnly = true,
+                    label = { Text("Select Block") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .menuAnchor()
+                )
+                ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                    blocks.forEach {                        
+                        DropdownMenuItem(
+                            text = { Text(it.name) },
+                            onClick = {
+                                selectedBlock = it
+                                expanded = false
+                            }
+                        )
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            OutlinedTextField(
+                value = floorName,
+                onValueChange = { floorName = it },
+                label = { Text("Floor Name") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(16.dp))
             OutlinedTextField(
                 value = floorNumber,
                 onValueChange = { floorNumber = it },
-                label = { Text("Floor Number (e.g., 1)") },
-                modifier = Modifier.fillMaxWidth(),
-                colors = getOutlinedTextFieldColors()
+                label = { Text("Floor Number") },
+                modifier = Modifier.fillMaxWidth()
             )
-
             Spacer(modifier = Modifier.height(16.dp))
-
             OutlinedTextField(
-                value = blockName,
-                onValueChange = { blockName = it },
-                label = { Text("Block Name") },
-                modifier = Modifier.fillMaxWidth(),
-                colors = getOutlinedTextFieldColors()
+                value = description,
+                onValueChange = { description = it },
+                label = { Text("Description") },
+                modifier = Modifier.fillMaxWidth()
             )
-
             Spacer(modifier = Modifier.weight(1f))
 
             Button(
                 onClick = {
-                    viewModel.addFloor(floorNumber, blockName)
-                    navController.popBackStack()
+                    selectedBlock?.let {
+                        viewModel.addFloor(floorName, floorNumber.toIntOrNull() ?: 0, description, it.id)
+                        navController.popBackStack()
+                    }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
                 shape = RoundedCornerShape(16.dp),
+                enabled = selectedBlock != null,
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4ADE80))
             ) {
                 Text(text = "Save Floor", fontSize = 18.sp)

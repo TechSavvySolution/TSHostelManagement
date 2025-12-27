@@ -1,37 +1,29 @@
 package com.techsavvy.tshostelmanagement.ui.admin.infrastructure
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.techsavvy.tshostelmanagement.ui.hostel.HostelViewModel
 
 @Composable
 fun EditBlockScreen(
     navController: NavController,
-    viewModel: InfrastructureViewModel,
+    viewModel: HostelViewModel = hiltViewModel(),
     blockId: String?
 ) {
-    val block = viewModel.uiState.collectAsState().value.blocks.find { it.id == blockId }
+    LaunchedEffect(blockId) {
+        blockId?.let { viewModel.getBlock(it) }
+    }
+
+    val block by viewModel.selectedBlock.collectAsState()
     var blockName by remember(block) { mutableStateOf(block?.name ?: "") }
     var blockAlias by remember(block) { mutableStateOf(block?.alias ?: "") }
 
@@ -42,13 +34,13 @@ fun EditBlockScreen(
         Column(modifier = Modifier.padding(it).fillMaxSize().padding(16.dp)) {
             Text("Edit Block", color = Color.White, fontSize = 26.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(24.dp))
-            OutlinedTextField(value = blockName, onValueChange = { blockName = it }, label = { Text("Block Name") }, modifier = Modifier.fillMaxWidth(), colors = getOutlinedTextFieldColors())
+            OutlinedTextField(value = blockName, onValueChange = { blockName = it }, label = { Text("Block Name") }, modifier = Modifier.fillMaxWidth())
             Spacer(modifier = Modifier.height(16.dp))
-            OutlinedTextField(value = blockAlias, onValueChange = { blockAlias = it }, label = { Text("Block Alias (Optional)") }, modifier = Modifier.fillMaxWidth(), colors = getOutlinedTextFieldColors())
+            OutlinedTextField(value = blockAlias ?: "", onValueChange = { blockAlias = it }, label = { Text("Block Alias (Optional)") }, modifier = Modifier.fillMaxWidth())
             Spacer(modifier = Modifier.weight(1f))
             Button(onClick = {
-                if (block != null) {
-                    viewModel.updateBlock(block.id, blockName, blockAlias)
+                block?.let {
+                    viewModel.updateBlock(it.copy(name = blockName, alias = blockAlias))
                     navController.popBackStack()
                 }
             }, modifier = Modifier.fillMaxWidth().height(56.dp), shape = RoundedCornerShape(16.dp), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4ADE80))) {
@@ -61,12 +53,17 @@ fun EditBlockScreen(
 @Composable
 fun EditFloorScreen(
     navController: NavController,
-    viewModel: InfrastructureViewModel,
+    viewModel: HostelViewModel = hiltViewModel(),
     floorId: String?
 ) {
-    val floor = viewModel.uiState.collectAsState().value.floors.find { it.id == floorId }
-    var floorNumber by remember(floor) { mutableStateOf(floor?.number ?: "") }
-    var blockName by remember(floor) { mutableStateOf(floor?.blockName ?: "") }
+    LaunchedEffect(floorId) {
+        floorId?.let { viewModel.getFloor(it) }
+    }
+
+    val floor by viewModel.selectedFloor.collectAsState()
+    var floorName by remember(floor) { mutableStateOf(floor?.name ?: "") }
+    var floorNumber by remember(floor) { mutableStateOf(floor?.floorNumber?.toString() ?: "") }
+    var description by remember(floor) { mutableStateOf(floor?.description ?: "") }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -75,13 +72,15 @@ fun EditFloorScreen(
         Column(modifier = Modifier.padding(it).fillMaxSize().padding(16.dp)) {
             Text("Edit Floor", color = Color.White, fontSize = 26.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(24.dp))
-            OutlinedTextField(value = floorNumber, onValueChange = { floorNumber = it }, label = { Text("Floor Number") }, modifier = Modifier.fillMaxWidth(), colors = getOutlinedTextFieldColors())
+            OutlinedTextField(value = floorName, onValueChange = { floorName = it }, label = { Text("Floor Name") }, modifier = Modifier.fillMaxWidth())
             Spacer(modifier = Modifier.height(16.dp))
-            OutlinedTextField(value = blockName, onValueChange = { blockName = it }, label = { Text("Block Name") }, modifier = Modifier.fillMaxWidth(), colors = getOutlinedTextFieldColors())
+            OutlinedTextField(value = floorNumber, onValueChange = { floorNumber = it }, label = { Text("Floor Number") }, modifier = Modifier.fillMaxWidth())
+            Spacer(modifier = Modifier.height(16.dp))
+            OutlinedTextField(value = description, onValueChange = { description = it }, label = { Text("Description") }, modifier = Modifier.fillMaxWidth())
             Spacer(modifier = Modifier.weight(1f))
             Button(onClick = {
-                if (floor != null) {
-                    viewModel.updateFloor(floor.id, floorNumber, blockName)
+                floor?.let {
+                    viewModel.updateFloor(it.copy(name = floorName, floorNumber = floorNumber.toIntOrNull() ?: 0, description = description))
                     navController.popBackStack()
                 }
             }, modifier = Modifier.fillMaxWidth().height(56.dp), shape = RoundedCornerShape(16.dp), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4ADE80))) {
@@ -94,14 +93,16 @@ fun EditFloorScreen(
 @Composable
 fun EditRoomScreen(
     navController: NavController,
-    viewModel: InfrastructureViewModel,
+    viewModel: HostelViewModel = hiltViewModel(),
     roomId: String?
 ) {
-    val room = viewModel.uiState.collectAsState().value.rooms.find { it.id == roomId }
-    var roomNumber by remember(room) { mutableStateOf(room?.number ?: "") }
-    var capacity by remember(room) { mutableStateOf(room?.capacity ?: "") }
-    var floor by remember(room) { mutableStateOf(room?.floor ?: "") }
-    var blockName by remember(room) { mutableStateOf(room?.blockName ?: "") }
+    LaunchedEffect(roomId) {
+        roomId?.let { viewModel.getRoom(it) }
+    }
+
+    val room by viewModel.selectedRoom.collectAsState()
+    var roomName by remember(room) { mutableStateOf(room?.name ?: "") }
+    var roomNumber by remember(room) { mutableStateOf(room?.roomNumber?.toString() ?: "") }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -110,17 +111,13 @@ fun EditRoomScreen(
         Column(modifier = Modifier.padding(it).fillMaxSize().padding(16.dp)) {
             Text("Edit Room", color = Color.White, fontSize = 26.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(24.dp))
-            OutlinedTextField(value = roomNumber, onValueChange = { roomNumber = it }, label = { Text("Room Number") }, modifier = Modifier.fillMaxWidth(), colors = getOutlinedTextFieldColors())
+            OutlinedTextField(value = roomName, onValueChange = { roomName = it }, label = { Text("Room Name") }, modifier = Modifier.fillMaxWidth())
             Spacer(modifier = Modifier.height(16.dp))
-            OutlinedTextField(value = capacity, onValueChange = { capacity = it }, label = { Text("Capacity") }, modifier = Modifier.fillMaxWidth(), colors = getOutlinedTextFieldColors())
-            Spacer(modifier = Modifier.height(16.dp))
-            OutlinedTextField(value = floor, onValueChange = { floor = it }, label = { Text("Floor Number") }, modifier = Modifier.fillMaxWidth(), colors = getOutlinedTextFieldColors())
-            Spacer(modifier = Modifier.height(16.dp))
-            OutlinedTextField(value = blockName, onValueChange = { blockName = it }, label = { Text("Block Name") }, modifier = Modifier.fillMaxWidth(), colors = getOutlinedTextFieldColors())
+            OutlinedTextField(value = roomNumber, onValueChange = { roomNumber = it }, label = { Text("Room Number") }, modifier = Modifier.fillMaxWidth())
             Spacer(modifier = Modifier.weight(1f))
             Button(onClick = {
-                if (room != null) {
-                    viewModel.updateRoom(room.id, roomNumber, capacity, floor, blockName)
+                room?.let {
+                    viewModel.updateRoom(it.copy(name = roomName, roomNumber = roomNumber.toIntOrNull() ?: 0))
                     navController.popBackStack()
                 }
             }, modifier = Modifier.fillMaxWidth().height(56.dp), shape = RoundedCornerShape(16.dp), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4ADE80))) {

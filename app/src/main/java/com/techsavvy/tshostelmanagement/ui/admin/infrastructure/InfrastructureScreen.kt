@@ -1,80 +1,82 @@
 package com.techsavvy.tshostelmanagement.ui.admin.infrastructure
 
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.*
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Apartment
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Domain
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.KingBed
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.techsavvy.tshostelmanagement.navigation.Screens
+import com.techsavvy.tshostelmanagement.data.models.Block
+import com.techsavvy.tshostelmanagement.data.models.Floor
+import com.techsavvy.tshostelmanagement.data.models.Room
+import com.techsavvy.tshostelmanagement.ui.hostel.HostelViewModel
+import kotlinx.coroutines.flow.collectLatest
 
+private data class FabMenuItemData(val icon: ImageVector, val label: String, val route: String)
+
+@OptIn(
+    ExperimentalAnimationApi::class,
+    ExperimentalMaterial3Api::class,
+    ExperimentalFoundationApi::class
+)
 @Composable
 fun InfrastructureScreen(
     navController: NavController,
-    viewModel: InfrastructureViewModel = viewModel()
+    viewModel: HostelViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-    var isFabExpanded by remember { mutableStateOf(false) }
+    val blocks by viewModel.blocks.collectAsState()
+    val floors by viewModel.floors.collectAsState()
+    val rooms by viewModel.rooms.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    var showMenu by remember { mutableStateOf(false) }
+
+    var searchQuery by remember { mutableStateOf("") }
+
+
+    LaunchedEffect(Unit) {
+        viewModel.snackbarFlow.collectLatest {
+            snackbarHostState.showSnackbar(it)
+        }
+    }
+
     var showDeleteConfirmation by remember { mutableStateOf<Pair<String, () -> Unit>?>(null) }
-    var selectedTab by remember { mutableStateOf(0) }
+    var selectedTab by remember { mutableIntStateOf(0) }
 
     if (showDeleteConfirmation != null) {
         StyledConfirmationDialog(
@@ -88,126 +90,236 @@ fun InfrastructureScreen(
         )
     }
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        containerColor = Color(0xFF010413),
-        floatingActionButton = {
-            Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                AnimatedVisibility(visible = isFabExpanded) {
-                    Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        FabItem(icon = Icons.Default.Domain, label = "Add Block") { navController.navigate(Screens.Admin.AddBlock.route) }
-                        FabItem(icon = Icons.Default.Apartment, label = "Add Floor") { navController.navigate(Screens.Admin.AddFloor.route) }
-                        FabItem(icon = Icons.Default.KingBed, label = "Add Room") { navController.navigate(Screens.Admin.AddRoom.route) }
-                    }
-                }
-                val rotation by animateFloatAsState(targetValue = if (isFabExpanded) 45f else 0f, label = "fab_rotation")
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            containerColor = Color(0xFF010413),
+            snackbarHost = { SnackbarHost(snackbarHostState) },
+            floatingActionButton = {
                 FloatingActionButton(
-                    onClick = { isFabExpanded = !isFabExpanded },
+                    onClick = { showMenu = !showMenu },
                     containerColor = Color(0xFF4ADE80),
                     shape = CircleShape
                 ) {
-                    Icon(
-                        Icons.Default.Add,
-                        contentDescription = "Add items",
-                        tint = Color.Black,
-                        modifier = Modifier.rotate(rotation)
-                    )
+                    Icon(Icons.Default.Add, "Add items", tint = Color.Black)
+                }
+            }
+        ) { paddingValues ->
+            Column(
+                modifier = Modifier
+                    .padding(paddingValues)
+                    .fillMaxSize()
+            ) {
+                val tabs = listOf(
+                    "All" to Icons.Default.SelectAll,
+                    "Blocks" to Icons.Default.Domain,
+                    "Floors" to Icons.Default.Apartment,
+                    "Rooms" to Icons.Default.KingBed
+                )
+                SearchBar(searchQuery = searchQuery, onQueryChange = { searchQuery = it }) { 
+                    
+                }
+
+                TabRow(
+                    selectedTabIndex = selectedTab,
+                    containerColor = Color.Transparent,
+                    contentColor = Color(0xFF4ADE80),
+                    indicator = { tabPositions ->
+                        if (selectedTab < tabPositions.size) {
+                            Box(
+                                modifier = Modifier
+                                    .tabIndicatorOffset(tabPositions[selectedTab])
+                                    .height(3.dp)
+                                    .background(color = Color(0xFF4ADE80), shape = RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp))
+                            )
+                        }
+                    }
+                ) {
+                    tabs.forEachIndexed { index, (title, icon) ->
+                        val count = when (index) {
+                            0 -> blocks.size + floors.size + rooms.size
+                            1 -> blocks.size
+                            2 -> floors.size
+                            3 -> rooms.size
+                            else -> 0
+                        }
+                        val isSelected = selectedTab == index
+                        Tab(
+                            selected = isSelected,
+                            onClick = { selectedTab = index },
+                            modifier = Modifier.height(72.dp)
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                BadgedBox(badge = {
+                                    if (count > 0) {
+                                        Badge(
+                                            containerColor = if (isSelected) Color(0xFF4ADE80) else Color.White.copy(alpha = 0.7f),
+                                            contentColor = if (isSelected) Color(0xFF010413) else Color.Black
+                                        ) {
+                                            AnimatedContent(
+                                                targetState = count,
+                                                transitionSpec = {
+                                                    (slideInVertically { height -> height } + fadeIn())
+                                                        .togetherWith(slideOutVertically { height -> -height } + fadeOut())
+                                                }, label = "count"
+                                            ) { targetCount ->
+                                                Text(
+                                                    text = targetCount.toString(),
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                            }
+                                        }
+                                    }
+                                }) {
+                                    Icon(
+                                        imageVector = icon,
+                                        contentDescription = title,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = title,
+                                    fontSize = 12.sp,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                )
+                            }
+                        }
+                    }
+                }
+
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    contentPadding = PaddingValues(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.animateContentSize()
+                ) {
+                    when (selectedTab) {
+                        0 -> {
+                            val allItems = (blocks.map { InfrastructureItem.fromBlock(it, floors, rooms) } +
+                                    floors.map { InfrastructureItem.fromFloor(it) } +
+                                    rooms.map { InfrastructureItem.fromRoom(it) })
+                                .filter { it.title.contains(searchQuery, ignoreCase = true) }
+
+                            if (allItems.isEmpty()) {
+                                item(span = { GridItemSpan(2) }) {
+                                    EmptyContent(
+                                        title = "No items found",
+                                        subtitle = "Tap the + button to add a new item.",
+                                        icon = Icons.Default.MapsHomeWork
+                                    )
+                                }
+                            } else {
+                                items(allItems, key = { "${it.type}_${it.id}" }) { item ->
+                                    InfrastructureGridItem(
+                                        item = item,
+                                        onEdit = { navController.navigate("edit_${item.type}/${item.id}") },
+                                        onDelete = { showDeleteConfirmation = Pair(item.type) { viewModel.deleteItem(item.type, item.id) } },
+                                        onViewDetails = { navController.navigate("details_${item.type}/${item.id}") }
+                                    )
+                                }
+                            }
+                        }
+                        1 -> {
+                            val filteredBlocks = blocks.filter { it.name.contains(searchQuery, ignoreCase = true) }
+                            if (filteredBlocks.isEmpty()) {
+                                item(span = { GridItemSpan(2) }) {
+                                    EmptyContent(
+                                        title = "No blocks found",
+                                        subtitle = "Tap the + button to add a new block.",
+                                        icon = Icons.Default.Domain
+                                    )
+                                }
+                            } else {
+                                items(filteredBlocks, key = { "block_tab_${it.id}" }) { block ->
+                                    InfrastructureGridItem(
+                                        item = InfrastructureItem.fromBlock(block, floors, rooms),
+                                        onEdit = { navController.navigate("edit_block/${block.id}") },
+                                        onDelete = { showDeleteConfirmation = Pair("block") { viewModel.deleteBlock(block.id) } },
+                                        onViewDetails = { navController.navigate("details_block/${block.id}") }
+                                    )
+                                }
+                            }
+                        }
+                        2 -> {
+                            if (floors.isEmpty()) {
+                                item(span = { GridItemSpan(2) }) {
+                                    EmptyContent(
+                                        title = "No floors found",
+                                        subtitle = "Tap + to create your first floor.",
+                                        icon = Icons.Default.Apartment
+                                    )
+                                }
+                            } else {
+                                items(floors, key = { "floor_tab_${it.id}" }) { floor ->
+                                    InfrastructureGridItem(
+                                        item = InfrastructureItem.fromFloor(floor),
+                                        onEdit = { navController.navigate("edit_floor/${floor.id}") },
+                                        onDelete = { showDeleteConfirmation = Pair("floor") { viewModel.deleteFloor(floor.id) } },
+                                        onViewDetails = { navController.navigate("details_floor/${floor.id}") }
+                                    )
+                                }
+                            }
+                        }
+                        3 -> {
+                            val filteredRooms = rooms.filter { it.name.contains(searchQuery, ignoreCase = true) }
+                            if (filteredRooms.isEmpty()) {
+                                item(span = { GridItemSpan(2) }) {
+                                    EmptyContent(
+                                        title = "No rooms found",
+                                        subtitle = "Tap the + button to add a new room.",
+                                        icon = Icons.Default.KingBed
+                                    )
+                                }
+                            } else {
+                                items(filteredRooms, key = { "room_tab_${it.id}" }) { room ->
+                                    InfrastructureGridItem(
+                                        item = InfrastructureItem.fromRoom(room),
+                                        onEdit = { navController.navigate("edit_room/${room.id}") },
+                                        onDelete = { showDeleteConfirmation = Pair("room") { viewModel.deleteRoom(room.id) } },
+                                        onViewDetails = { navController.navigate("details_room/${room.id}") }
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier.padding(paddingValues).fillMaxSize()
-        ) {
-            val filters = listOf("All", "Blocks", "Floors", "Rooms")
-            LazyRow(
-                modifier = Modifier.padding(vertical = 16.dp),
-                contentPadding = PaddingValues(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+
+        if (showMenu) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.5f))
+                    .clickable { showMenu = false }
             ) {
-                itemsIndexed(filters) { index, title ->
-                    val count = when (index) {
-                        0 -> uiState.blocks.size + uiState.floors.size + uiState.rooms.size
-                        1 -> uiState.blocks.size
-                        2 -> uiState.floors.size
-                        3 -> uiState.rooms.size
-                        else -> 0
-                    }
-                    FilterChip(
-                        title = title,
-                        count = count,
-                        isSelected = selectedTab == index,
-                        onClick = { selectedTab = index }
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(bottom = 80.dp, end = 16.dp)
+                        .width(IntrinsicSize.Max)
+                        .background(Color(0xFF1E293B), RoundedCornerShape(16.dp))
+                        .padding(vertical = 8.dp)
+                ) {
+                    val menuItems = listOf(
+                        FabMenuItemData(Icons.Default.Domain, "Add Block", "add_block"),
+                        FabMenuItemData(Icons.Default.Apartment, "Add Floor", "add_floor"),
+                        FabMenuItemData(Icons.Default.KingBed, "Add Room", "add_room")
                     )
-                }
-            }
 
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                when (selectedTab) {
-                    0 -> {
-                        if (uiState.blocks.isNotEmpty()) {
-                            item(span = { GridItemSpan(2) }) {
-                                SectionHeader(title = "Blocks")
+                    menuItems.forEach { item ->
+                        FabMenuItem(
+                            icon = item.icon,
+                            text = item.label,
+                            onClick = {
+                                navController.navigate(item.route)
+                                showMenu = false
                             }
-                            items(uiState.blocks, key = { "block_${it.id}" }) { block ->
-                                InfrastructureGridItem(
-                                    item = InfrastructureItem.fromBlock(block, uiState),
-                                    onEdit = { navController.navigate(Screens.Admin.EditBlock.createRoute(block.id)) },
-                                    onDelete = { showDeleteConfirmation = Pair("block") { viewModel.deleteBlock(block.id) } }
-                                )
-                            }
-                        }
-
-                        if (uiState.floors.isNotEmpty()) {
-                            item(span = { GridItemSpan(2) }) {
-                                SectionHeader(title = "Floors")
-                            }
-                            items(uiState.floors, key = { "floor_${it.id}" }) { floor ->
-                                InfrastructureGridItem(
-                                    item = InfrastructureItem.fromFloor(floor),
-                                    onEdit = { navController.navigate(Screens.Admin.EditFloor.createRoute(floor.id)) },
-                                    onDelete = { showDeleteConfirmation = Pair("floor") { viewModel.deleteFloor(floor.id) } }
-                                )
-                            }
-                        }
-
-                        if (uiState.rooms.isNotEmpty()) {
-                            item(span = { GridItemSpan(2) }) {
-                                SectionHeader(title = "Rooms")
-                            }
-                            items(uiState.rooms, key = { "room_${it.id}" }) { room ->
-                                InfrastructureGridItem(
-                                    item = InfrastructureItem.fromRoom(room),
-                                    onEdit = { navController.navigate(Screens.Admin.EditRoom.createRoute(room.id)) },
-                                    onDelete = { showDeleteConfirmation = Pair("room") { viewModel.deleteRoom(room.id) } }
-                                )
-                            }
-                        }
-                    }
-                    1 -> items(uiState.blocks, key = { "block_tab_${it.id}" }) { block ->
-                        InfrastructureGridItem(
-                            item = InfrastructureItem.fromBlock(block, uiState),
-                            onEdit = { navController.navigate(Screens.Admin.EditBlock.createRoute(block.id)) },
-                            onDelete = { showDeleteConfirmation = Pair("block") { viewModel.deleteBlock(block.id) } }
-                        )
-                    }
-                    2 -> items(uiState.floors, key = { "floor_tab_${it.id}" }) { floor ->
-                        InfrastructureGridItem(
-                            item = InfrastructureItem.fromFloor(floor),
-                            onEdit = { navController.navigate(Screens.Admin.EditFloor.createRoute(floor.id)) },
-                            onDelete = { showDeleteConfirmation = Pair("floor") { viewModel.deleteFloor(floor.id) } }
-                        )
-                    }
-                    3 -> items(uiState.rooms, key = { "room_tab_${it.id}" }) { room ->
-                        InfrastructureGridItem(
-                            item = InfrastructureItem.fromRoom(room),
-                            onEdit = { navController.navigate(Screens.Admin.EditRoom.createRoute(room.id)) },
-                            onDelete = { showDeleteConfirmation = Pair("room") { viewModel.deleteRoom(room.id) } }
                         )
                     }
                 }
@@ -217,106 +329,147 @@ fun InfrastructureScreen(
 }
 
 @Composable
-fun FilterChip(title: String, count: Int, isSelected: Boolean, onClick: () -> Unit) {
-    val backgroundColor = if (isSelected) Color(0xFF4ADE80) else Color.White.copy(alpha = 0.05f)
-    val contentColor = if (isSelected) Color(0xFF010413) else Color.White.copy(alpha = 0.8f)
-
+private fun FabMenuItem(icon: ImageVector, text: String, onClick: () -> Unit) {
     Row(
         modifier = Modifier
-            .height(40.dp)
-            .clip(RoundedCornerShape(50))
-            .background(backgroundColor)
             .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = title, color = contentColor, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-        Box(
-            modifier = Modifier
-                .size(24.dp)
-                .clip(CircleShape)
-                .background(if (isSelected) Color.Black.copy(alpha = 0.1f) else Color.White.copy(alpha = 0.1f)),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = count.toString(),
-                color = if (isSelected) Color.White.copy(alpha = 0.8f) else Color(0xFF4ADE80),
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
+        Icon(icon, contentDescription = text, tint = Color(0xFF4ADE80))
+        Spacer(modifier = Modifier.width(16.dp))
+        Text(text, color = Color.White)
     }
 }
 
 @Composable
-fun SectionHeader(title: String) {
-    Text(
-        text = title,
-        color = Color.White,
-        fontSize = 22.sp,
-        fontWeight = FontWeight.SemiBold,
-        modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
-    )
+private fun EmptyContent(modifier: Modifier = Modifier, title: String, subtitle: String, icon: ImageVector) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = Color.White.copy(alpha = 0.3f),
+            modifier = Modifier.size(64.dp)
+        )
+        Spacer(Modifier.height(16.dp))
+        Text(
+            text = title,
+            color = Color.White,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 18.sp
+        )
+        Spacer(Modifier.height(8.dp))
+        Text(
+            text = subtitle,
+            color = Color.White.copy(alpha = 0.7f),
+            fontSize = 14.sp,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
+    }
 }
 
 data class InfrastructureItem(
+    val id: String,
+    val type: String,
     val title: String,
     val subtitle: String,
     val icon: ImageVector,
-    val color: Color
+    val color: Color,
+    val status: Status
 ) {
     companion object {
-        fun fromBlock(block: Block, uiState: InfrastructureUiState) = InfrastructureItem(
+        fun fromBlock(block: Block, floors: List<Floor>, rooms: List<Room>) = InfrastructureItem(
+            id = block.id,
+            type = "block",
             title = block.name,
-            subtitle = "${uiState.getFloorCountForBlock(block.name)} Floors | ${uiState.getRoomCountForBlock(block.name)} Rooms",
+            subtitle = "${floors.count { it.blockId == block.id }} Floors | ${rooms.count { it.blockId == block.id }} Rooms",
             icon = Icons.Default.Domain,
-            color = Color(0xFF22D3EE)
+            color = Color(0xFF3B82F6),
+            status = Status.ACTIVE
         )
 
         fun fromFloor(floor: Floor) = InfrastructureItem(
-            title = "Floor ${floor.number}",
-            subtitle = floor.blockName,
+            id = floor.id,
+            type = "floor",
+            title = "Floor ${floor.name}",
+            subtitle = "Block ID: ${floor.blockId}",
             icon = Icons.Default.Apartment,
-            color = Color(0xFFA78BFA)
+            color = Color(0xFF8B5CF6),
+            status = Status.ACTIVE
         )
 
         fun fromRoom(room: Room) = InfrastructureItem(
-            title = "Room ${room.number}",
+            id = room.id,
+            type = "room",
+            title = "Room ${room.name}",
             subtitle = "Cap: ${room.capacity}",
             icon = Icons.Default.KingBed,
-            color = Color(0xFFF87171)
+            color = Color(0xFFEF4444),
+            status = if (room.capacity > 3) Status.FULL else Status.ACTIVE
         )
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun InfrastructureGridItem(
     item: InfrastructureItem,
     onEdit: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onViewDetails: () -> Unit
 ) {
     var isMenuExpanded by remember { mutableStateOf(false) }
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(targetValue = if (isPressed) 0.98f else 1f, label = "scale")
+    val shadowElevation by animateDpAsState(targetValue = if (isPressed) 16.dp else 8.dp, label = "shadow")
+
     Column(
         modifier = Modifier
+            .scale(scale)
+            .shadow(
+                elevation = shadowElevation,
+                shape = RoundedCornerShape(16.dp),
+                ambientColor = item.color.copy(alpha = 0.3f),
+                spotColor = item.color.copy(alpha = 0.3f)
+            )
             .height(170.dp)
-            .clip(RoundedCornerShape(24.dp))
-            .background(Color.White.copy(alpha = 0.1f))
+            .clip(RoundedCornerShape(16.dp))
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        Color.White.copy(alpha = 0.04f),
+                        Color.White.copy(alpha = 0.02f)
+                    )
+                )
+            )
             .border(
                 1.dp,
-                Brush.linearGradient(listOf(item.color.copy(alpha = 0.5f), Color.Transparent)),
-                RoundedCornerShape(24.dp)
+                Brush.linearGradient(listOf(item.color.copy(alpha = 0.2f), Color.Transparent)),
+                RoundedCornerShape(16.dp)
             )
-            .clickable { onEdit() }
+            .combinedClickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = { onEdit() },
+                onLongClick = { isMenuExpanded = true }
+            )
             .padding(20.dp)
     ) {
         Row(verticalAlignment = Alignment.Top) {
             Box(
                 modifier = Modifier
                     .size(48.dp)
-                    .clip(RoundedCornerShape(14.dp))
+                    .clip(RoundedCornerShape(12.dp))
                     .background(item.color.copy(alpha = 0.1f))
-                    .border(1.dp, item.color.copy(alpha = 0.3f), RoundedCornerShape(14.dp)),
+                    .border(1.dp, item.color.copy(alpha = 0.3f), RoundedCornerShape(12.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -328,108 +481,69 @@ fun InfrastructureGridItem(
             }
             Spacer(modifier = Modifier.weight(1f))
             Box {
-                IconButton(onClick = { isMenuExpanded = true }, modifier = Modifier.size(24.dp)) {
-                    Icon(Icons.Default.MoreVert, contentDescription = "Menu", tint = Color.White.copy(alpha = 0.7f))
-                }
-                DropdownMenu(
-                    expanded = isMenuExpanded,
-                    onDismissRequest = { isMenuExpanded = false },
-                    modifier = Modifier
-                        .background(
-                            color = Color(0xFF1E293B),
-                            shape = RoundedCornerShape(16.dp)
-                        )
-                        .border(
-                            width = 1.dp,
-                            color = Color.White.copy(alpha = 0.2f),
-                            shape = RoundedCornerShape(16.dp)
-                        )
-                ) {
-                    DropdownMenuItem(text = { Text("Edit", color = Color.White) }, onClick = { onEdit(); isMenuExpanded = false }, leadingIcon = { Icon(Icons.Default.Edit, "Edit", tint = Color.White.copy(alpha = 0.7f)) })
-                    DropdownMenuItem(text = { Text("Delete", color = Color(0xFFE53935)) }, onClick = { onDelete(); isMenuExpanded = false }, leadingIcon = { Icon(Icons.Default.Delete, "Delete", tint = Color(0xFFE53935)) })
+                StatusChip(status = item.status)
+                DropdownMenu(expanded = isMenuExpanded, onDismissRequest = { isMenuExpanded = false }) {
+                    DropdownMenuItem(text = { Text("Edit") }, onClick = {
+                        onEdit()
+                        isMenuExpanded = false
+                    })
+                    DropdownMenuItem(text = { Text("Delete") }, onClick = {
+                        onDelete()
+                        isMenuExpanded = false
+                    })
+                    DropdownMenuItem(text = { Text("View Details") }, onClick = {
+                        onViewDetails()
+                        isMenuExpanded = false
+                    })
                 }
             }
         }
         Spacer(modifier = Modifier.weight(1f))
-        Text(text = item.title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-        Text(text = item.subtitle, color = Color.White.copy(alpha = 0.7f), fontSize = 14.sp)
-    }
-}
-
-@Composable
-private fun FabItem(icon: ImageVector, label: String, onClick: () -> Unit) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        modifier = Modifier
-            .clip(RoundedCornerShape(50.dp))
-            .clickable(onClick = onClick)
-            .background(Color.White.copy(alpha = 0.1f))
-            .padding(horizontal = 16.dp, vertical = 12.dp)
-    ) {
-        Text(label, color = Color.White, fontWeight = FontWeight.Bold)
-        Icon(
-            imageVector = icon,
-            contentDescription = label,
-            tint = Color(0xFF4ADE80)
-        )
-    }
-}
-
-@Composable
-fun StyledConfirmationDialog(
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit,
-    title: String,
-    text: String
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = Color(0xFF1E293B),
-        shape = RoundedCornerShape(16.dp),
-        title = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    Icons.Default.Warning,
-                    contentDescription = "Warning",
-                    tint = Color(0xFFFBBF24)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = title,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp
-                )
-            }
-        },
-        text = {
-            Text(
-                text = text,
-                color = Color.White.copy(alpha = 0.8f),
-                fontSize = 16.sp
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Box(
+                modifier = Modifier
+                    .size(8.dp)
+                    .clip(CircleShape)
+                    .background(item.color)
             )
-        },
-        confirmButton = {
-            Button(
-                onClick = onConfirm,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFE53935).copy(alpha = 0.8f),
-                    contentColor = Color.White
-                )
-            ) {
-                Text("Delete")
-            }
-        },
-        dismissButton = {
-            OutlinedButton(
-                onClick = onDismiss,
-                border = ButtonDefaults.outlinedButtonBorder.copy(
-                    brush = androidx.compose.ui.graphics.SolidColor(Color.White.copy(alpha = 0.5f))
-                )
-            ) {
-                Text("Cancel", color = Color.White)
-            }
+            Text(text = item.title, color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
         }
+        Spacer(modifier = Modifier.height(2.dp))
+        Text(text = item.subtitle, color = Color.White.copy(alpha = 0.7f), fontSize = 14.sp, modifier = Modifier.padding(start = 16.dp))
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SearchBar(searchQuery: String, onQueryChange: (String) -> Unit, onSearch: () -> Unit) {
+    val keyboardController = LocalSoftwareKeyboardController.current
+    OutlinedTextField(
+        value = searchQuery,
+        onValueChange = onQueryChange,
+        placeholder = { Text("Search by name...", color = Color.White.copy(alpha = 0.5f)) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+            .background(Color.White.copy(alpha = 0.05f), RoundedCornerShape(16.dp)),
+        shape = RoundedCornerShape(16.dp),
+        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.White) },
+        trailingIcon = {
+            if (searchQuery.isNotEmpty()) {
+                IconButton(onClick = { onQueryChange("") }) {
+                    Icon(Icons.Default.Clear, contentDescription = "Clear search", tint = Color.White)
+                }
+            }
+        },
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+        keyboardActions = KeyboardActions(onSearch = {
+            onSearch()
+            keyboardController?.hide()
+        }),
+        textStyle = TextStyle(color = Color.White),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = Color(0xFF4ADE80),
+            unfocusedBorderColor = Color.Transparent,
+            cursorColor = Color.White
+        )
     )
 }

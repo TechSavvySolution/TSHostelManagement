@@ -24,11 +24,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.techsavvy.tshostelmanagement.ui.hostel.HostelViewModel
 
 @Composable
 fun AddBlockScreen(
-    navController: NavController,
-    viewModel: InfrastructureViewModel = hiltViewModel()
+    navController: NavController, 
+    viewModel: HostelViewModel = hiltViewModel()
 ) {
     var blockName by remember { mutableStateOf("") }
     var blockAlias by remember { mutableStateOf("") }
@@ -55,8 +56,7 @@ fun AddBlockScreen(
                 value = blockName,
                 onValueChange = { blockName = it },
                 label = { Text("Block Name (e.g., Block A)") },
-                modifier = Modifier.fillMaxWidth(),
-                colors = getOutlinedTextFieldColors()
+                modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -65,8 +65,7 @@ fun AddBlockScreen(
                 value = blockAlias,
                 onValueChange = { blockAlias = it },
                 label = { Text("Block Alias (Optional)") },
-                modifier = Modifier.fillMaxWidth(),
-                colors = getOutlinedTextFieldColors()
+                modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(modifier = Modifier.weight(1f))

@@ -6,128 +6,135 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import androidx.navigation.navigation
 import com.techsavvy.tshostelmanagement.ui.admin.complaints.ComplaintsScreen
 import com.techsavvy.tshostelmanagement.ui.admin.fees.FeesScreen
 import com.techsavvy.tshostelmanagement.ui.admin.home.AdminHomeScreen
 import com.techsavvy.tshostelmanagement.ui.admin.hostellers.HostellersScreen
-import com.techsavvy.tshostelmanagement.ui.admin.infrastructure.AddBlockScreen
-import com.techsavvy.tshostelmanagement.ui.admin.infrastructure.AddFloorScreen
-import com.techsavvy.tshostelmanagement.ui.admin.infrastructure.AddRoomScreen
-import com.techsavvy.tshostelmanagement.ui.admin.infrastructure.EditBlockScreen
-import com.techsavvy.tshostelmanagement.ui.admin.infrastructure.EditFloorScreen
-import com.techsavvy.tshostelmanagement.ui.admin.infrastructure.EditRoomScreen
-import com.techsavvy.tshostelmanagement.ui.admin.infrastructure.InfrastructureScreen
-import com.techsavvy.tshostelmanagement.ui.admin.infrastructure.InfrastructureViewModel
+import com.techsavvy.tshostelmanagement.ui.admin.infrastructure.* // Import all infrastructure screens
 import com.techsavvy.tshostelmanagement.ui.admin.profile.ProfileScreen
 import com.techsavvy.tshostelmanagement.ui.admin.reports.ReportsScreen
 import com.techsavvy.tshostelmanagement.ui.admin.settings.SettingsScreen
 import com.techsavvy.tshostelmanagement.ui.admin.staff.StaffScreen
 import com.techsavvy.tshostelmanagement.ui.auth.AuthViewModel
 import com.techsavvy.tshostelmanagement.ui.auth.LoginScreen
+import com.techsavvy.tshostelmanagement.ui.hostel.HostelViewModel
 
 @Composable
 fun NavGraph(
     navController: NavHostController
 ) {
-    val authViewModel: AuthViewModel = hiltViewModel()
-
     NavHost(
         navController = navController,
         startDestination = Screens.Login.route
     ) {
-
         composable(Screens.Login.route) {
+            val authViewModel: AuthViewModel = hiltViewModel()
             LoginScreen(
                 navController = navController,
                 viewModel = authViewModel
             )
         }
-
-        adminNavGraph(navController)
+        adminGraph(navController)
     }
 }
 
-fun NavGraphBuilder.adminNavGraph(
-    navController: NavController
-) {
-    composable(Screens.Admin.Home.route) {
-        AdminHomeScreen(navController)
-    }
-
-    navigation(
-        startDestination = Screens.Admin.Infrastructure.route,
-        route = "admin_infrastructure_graph"
-    ) {
-        val infrastructureGraphRoute = "admin_infrastructure_graph"
-
+fun NavGraphBuilder.adminGraph(navController: NavController) {
+    navigation(startDestination = Screens.Admin.Home.route, route = "admin_graph") {
+        composable(Screens.Admin.Home.route) { AdminHomeScreen(navController) }
         composable(Screens.Admin.Infrastructure.route) { backStackEntry ->
-            val parentEntry = remember(backStackEntry) { navController.getBackStackEntry(infrastructureGraphRoute) }
-            val viewModel: InfrastructureViewModel = hiltViewModel(parentEntry)
+            val parentEntry = remember(backStackEntry) { navController.getBackStackEntry("admin_graph") }
+            val viewModel: HostelViewModel = hiltViewModel(parentEntry)
             InfrastructureScreen(navController, viewModel)
         }
-        composable(Screens.Admin.AddBlock.route) { backStackEntry ->
-            val parentEntry = remember(backStackEntry) { navController.getBackStackEntry(infrastructureGraphRoute) }
-            val viewModel: InfrastructureViewModel = hiltViewModel(parentEntry)
+        composable("add_block") { backStackEntry ->
+            val parentEntry = remember(backStackEntry) { navController.getBackStackEntry("admin_graph") }
+            val viewModel: HostelViewModel = hiltViewModel(parentEntry)
             AddBlockScreen(navController, viewModel)
         }
-        composable(Screens.Admin.AddFloor.route) { backStackEntry ->
-            val parentEntry = remember(backStackEntry) { navController.getBackStackEntry(infrastructureGraphRoute) }
-            val viewModel: InfrastructureViewModel = hiltViewModel(parentEntry)
+        composable("add_floor") { backStackEntry ->
+            val parentEntry = remember(backStackEntry) { navController.getBackStackEntry("admin_graph") }
+            val viewModel: HostelViewModel = hiltViewModel(parentEntry)
             AddFloorScreen(navController, viewModel)
         }
-        composable(Screens.Admin.AddRoom.route) { backStackEntry ->
-            val parentEntry = remember(backStackEntry) { navController.getBackStackEntry(infrastructureGraphRoute) }
-            val viewModel: InfrastructureViewModel = hiltViewModel(parentEntry)
+        composable("add_room") { backStackEntry ->
+            val parentEntry = remember(backStackEntry) { navController.getBackStackEntry("admin_graph") }
+            val viewModel: HostelViewModel = hiltViewModel(parentEntry)
             AddRoomScreen(navController, viewModel)
         }
-        composable(Screens.Admin.EditBlock.route) { backStackEntry ->
-            val parentEntry = remember(backStackEntry) { navController.getBackStackEntry(infrastructureGraphRoute) }
-            val viewModel: InfrastructureViewModel = hiltViewModel(parentEntry)
-            val blockId = backStackEntry.arguments?.getString("blockId")
-            EditBlockScreen(navController, viewModel, blockId)
+        composable(
+            route = "edit_block/{blockId}",
+            arguments = listOf(navArgument("blockId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val parentEntry = remember(backStackEntry) { navController.getBackStackEntry("admin_graph") }
+            val viewModel: HostelViewModel = hiltViewModel(parentEntry)
+            EditBlockScreen(
+                navController = navController,
+                viewModel = viewModel,
+                blockId = backStackEntry.arguments?.getString("blockId")
+            )
         }
-        composable(Screens.Admin.EditFloor.route) { backStackEntry ->
-            val parentEntry = remember(backStackEntry) { navController.getBackStackEntry(infrastructureGraphRoute) }
-            val viewModel: InfrastructureViewModel = hiltViewModel(parentEntry)
-            val floorId = backStackEntry.arguments?.getString("floorId")
-            EditFloorScreen(navController, viewModel, floorId)
+        composable(
+            route = "edit_floor/{floorId}",
+            arguments = listOf(navArgument("floorId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val parentEntry = remember(backStackEntry) { navController.getBackStackEntry("admin_graph") }
+            val viewModel: HostelViewModel = hiltViewModel(parentEntry)
+            EditFloorScreen(
+                navController = navController,
+                viewModel = viewModel,
+                floorId = backStackEntry.arguments?.getString("floorId")
+            )
         }
-        composable(Screens.Admin.EditRoom.route) { backStackEntry ->
-            val parentEntry = remember(backStackEntry) { navController.getBackStackEntry(infrastructureGraphRoute) }
-            val viewModel: InfrastructureViewModel = hiltViewModel(parentEntry)
-            val roomId = backStackEntry.arguments?.getString("roomId")
-            EditRoomScreen(navController, viewModel, roomId)
+        composable(
+            route = "edit_room/{roomId}",
+            arguments = listOf(navArgument("roomId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val parentEntry = remember(backStackEntry) { navController.getBackStackEntry("admin_graph") }
+            val viewModel: HostelViewModel = hiltViewModel(parentEntry)
+            EditRoomScreen(
+                navController = navController,
+                viewModel = viewModel,
+                roomId = backStackEntry.arguments?.getString("roomId")
+            )
         }
-    }
-
-    composable(Screens.Admin.Hostellers.route) {
-        HostellersScreen()
-    }
-
-    composable(Screens.Admin.Staff.route) {
-        StaffScreen()
-    }
-
-    composable(Screens.Admin.Complaints.route) {
-        ComplaintsScreen()
-    }
-
-    composable(Screens.Admin.Fees.route) {
-        FeesScreen()
-    }
-
-    composable(Screens.Admin.Reports.route) {
-        ReportsScreen()
-    }
-
-    composable(Screens.Admin.Profile.route) {
-        ProfileScreen()
-    }
-
-    composable(Screens.Admin.Settings.route) {
-        SettingsScreen(navController)
+        composable(
+            route = "details_block/{blockId}",
+            arguments = listOf(navArgument("blockId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            DetailsBlockScreen(
+                navController = navController,
+                blockId = backStackEntry.arguments?.getString("blockId")
+            )
+        }
+        composable(
+            route = "details_floor/{floorId}",
+            arguments = listOf(navArgument("floorId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            DetailsFloorScreen(
+                navController = navController,
+                floorId = backStackEntry.arguments?.getString("floorId")
+            )
+        }
+        composable(
+            route = "details_room/{roomId}",
+            arguments = listOf(navArgument("roomId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            DetailsRoomScreen(
+                navController = navController,
+                roomId = backStackEntry.arguments?.getString("roomId")
+            )
+        }
+        composable(Screens.Admin.Hostellers.route) { HostellersScreen() }
+        composable(Screens.Admin.Staff.route) { StaffScreen() }
+        composable(Screens.Admin.Complaints.route) { ComplaintsScreen() }
+        composable(Screens.Admin.Fees.route) { FeesScreen() }
+        composable(Screens.Admin.Reports.route) { ReportsScreen() }
+        composable(Screens.Admin.Profile.route) { ProfileScreen() }
+        composable(Screens.Admin.Settings.route) { SettingsScreen(navController) }
     }
 }
