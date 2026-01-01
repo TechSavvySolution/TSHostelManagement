@@ -3,7 +3,7 @@
     package="com.techsavvy.tshostelmanagement">
 
     <application
-        android:name=".MyApplication"
+        android:name="com.techsavvy.tshostelmanagement.MyApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -12,7 +12,7 @@
         android:theme="@style/Theme.TSHostelManagement">
 
         <activity
-            android:name=".MainActivity"
+            android:name="com.techsavvy.tshostelmanagement.MainActivity"
             android:exported="true"
             android:theme="@style/Theme.TSHostelManagement">
 

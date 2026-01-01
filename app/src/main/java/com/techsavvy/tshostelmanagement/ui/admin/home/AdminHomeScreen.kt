@@ -2,7 +2,6 @@ package com.techsavvy.tshostelmanagement.ui.admin.home
 
 import androidx.compose.animation.core.InfiniteRepeatableSpec
 import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
@@ -196,74 +195,17 @@ fun ModuleSection(navController: NavController) {
             fontWeight = FontWeight.SemiBold
         )
         Spacer(modifier = Modifier.height(16.dp))
-        HeroModuleCard(module = adminModules.first(), onClick = { navController.navigate(adminModules.first().route) })
-        Spacer(modifier = Modifier.height(16.dp))
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
             contentPadding = PaddingValues(bottom = 16.dp),
-            modifier = Modifier.height(380.dp) // Adjust height as needed
+            modifier = Modifier.height(572.dp) // Adjust height as needed
         ) {
-            items(adminModules.drop(1)) { module ->
+            items(adminModules) { module ->
                 ModuleGridItem(module = module, onClick = { navController.navigate(module.route) })
             }
         }
-    }
-}
-
-@Composable
-fun HeroModuleCard(module: AdminModule, onClick: () -> Unit) {
-    val infiniteTransition = rememberInfiniteTransition(label = "hero-glow")
-    val glow by infiniteTransition.animateFloat(
-        initialValue = 0.6f,
-        targetValue = 1f,
-        animationSpec = InfiniteRepeatableSpec(tween(1500, easing = LinearEasing), repeatMode = RepeatMode.Reverse),
-        label = "glow"
-    )
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(180.dp)
-            .clip(RoundedCornerShape(24.dp))
-            .background(Color.White.copy(alpha = 0.1f))
-            .border(
-                1.dp,
-                Brush.linearGradient(listOf(module.color.copy(alpha = 0.7f * glow), module.color.copy(alpha = 0.2f))),
-                RoundedCornerShape(24.dp)
-            )
-            .clickable { onClick() }
-            .padding(20.dp)
-    ) {
-        Column {
-            Box(
-                modifier = Modifier
-                    .size(54.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(module.color.copy(alpha = 0.1f))
-                    .border(1.dp, module.color.copy(alpha = 0.3f), RoundedCornerShape(16.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = module.icon,
-                    contentDescription = module.title,
-                    tint = module.color,
-                    modifier = Modifier.size(30.dp)
-                )
-            }
-            Spacer(modifier = Modifier.weight(1f))
-            Text(text = module.title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
-            Text(text = module.subtitle, color = Color.White.copy(alpha = 0.7f), fontSize = 14.sp, lineHeight = 18.sp)
-        }
-        Icon(
-            imageVector = Icons.AutoMirrored.Rounded.ArrowForward,
-            contentDescription = "Navigate",
-            tint = module.color,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .size(24.dp)
-        )
     }
 }
 

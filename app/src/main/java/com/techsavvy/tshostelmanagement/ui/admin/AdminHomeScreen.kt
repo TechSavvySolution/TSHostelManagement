@@ -22,10 +22,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -34,25 +33,20 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.techsavvy.tshostelmanagement.navigation.Screens
 import com.techsavvy.tshostelmanagement.ui.theme.TSHostelManagementTheme
-import kotlinx.coroutines.delay
 
 @Composable
 fun AdminHomeScreen(navController: NavController) {
@@ -72,7 +66,7 @@ fun AdminHomeScreen(navController: NavController) {
                 Spacer(modifier = Modifier.height(24.dp))
                 AnalyticsCarousel()
                 Spacer(modifier = Modifier.height(24.dp))
-                ModuleGrid(navController = navController)
+                ModuleList(navController = navController)
             }
         }
     }
@@ -192,67 +186,42 @@ fun AnalyticsCard(item: AnalyticsItem) {
 }
 
 @Composable
-fun ModuleGrid(navController: NavController) {
-    Column(modifier = Modifier.fillMaxSize()) {
+fun ModuleList(navController: NavController) {
+    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
         Text(
             text = "Management Modules",
             color = Color.White,
             fontSize = 22.sp,
             fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(horizontal = 16.dp)
         )
         Spacer(modifier = Modifier.height(16.dp))
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(3),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
+        LazyColumn(
             verticalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.fillMaxSize()
+            contentPadding = PaddingValues(bottom = 16.dp)
         ) {
-            itemsIndexed(adminModules) { index, module ->
-                val animatable = remember { Animatable(0f) }
-                 LaunchedEffect(module) {
-                    delay(100L * (index % 3))
-                    animatable.animateTo(1f, tween(600))
-                }
-                ModuleCard(module = module, animation = animatable.value, onClick = { navController.navigate(module.route) })
+            items(adminModules) { module ->
+                ModuleRow(module = module, onClick = { navController.navigate(module.route) })
             }
         }
     }
 }
 
 @Composable
-fun ModuleCard(module: AdminModule, animation: Float, onClick: () -> Unit) {
+fun ModuleRow(module: AdminModule, onClick: () -> Unit) {
     val color = module.color
-    Column(
+    Row(
         modifier = Modifier
-            .graphicsLayer {
-                scaleY = animation
-                alpha = animation
-            }
-            .clickable { onClick() },
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(24.dp))
+            .background(Color.White.copy(alpha = 0.05f))
+            .border(1.dp, Brush.linearGradient(listOf(color.copy(alpha = 0.4f), Color.Transparent)), RoundedCornerShape(24.dp))
+            .clickable { onClick() }
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .size(90.dp)
-                .clip(RoundedCornerShape(24.dp))
-                .background(
-                    Brush.radialGradient(
-                        colors = listOf(color.copy(alpha = 0.15f), Color.Transparent),
-                        radius = 150f
-                    )
-                )
-                .background(Color.White.copy(alpha = 0.05f))
-                .border(1.dp, Brush.linearGradient(listOf(color.copy(alpha = 0.4f), Color.Transparent)), RoundedCornerShape(24.dp)),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(imageVector = module.icon, contentDescription = null, tint = color.copy(alpha = 0.3f), modifier = Modifier.size(44.dp).offset(2.dp, 2.dp))
-            Icon(imageVector = module.icon, contentDescription = module.title, tint = color, modifier = Modifier.size(44.dp))
-        }
-        Spacer(modifier = Modifier.height(12.dp))
-        Text(text = module.title, color = Color.White.copy(alpha = 0.9f), fontWeight = FontWeight.SemiBold, fontSize = 14.sp, maxLines = 1, textAlign = TextAlign.Center)
+        Icon(imageVector = module.icon, contentDescription = module.title, tint = color, modifier = Modifier.size(32.dp))
+        Text(text = module.title, color = Color.White.copy(alpha = 0.9f), fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
     }
 }
 
@@ -280,7 +249,6 @@ val adminModules = listOf(
 )
 
 val analyticsItems = listOf(
-    AnalyticsItem("Hostellers", "0", Icons.Rounded.Group, Color(0xFF4ADE80)),
     AnalyticsItem("Buildings", "0", Icons.Rounded.Apartment, Color(0xFF22D3EE)),
     AnalyticsItem("Rooms", "0", Icons.Rounded.Bed, Color(0xFFFACC15)),
     AnalyticsItem("Staff", "0", Icons.Rounded.People, Color(0xFFF87171))
