@@ -22,7 +22,9 @@ import com.techsavvy.tshostelmanagement.ui.admin.settings.SettingsScreen
 import com.techsavvy.tshostelmanagement.ui.admin.staff.StaffScreen
 import com.techsavvy.tshostelmanagement.ui.auth.AuthViewModel
 import com.techsavvy.tshostelmanagement.ui.auth.LoginScreen
+import com.techsavvy.tshostelmanagement.ui.auth.RegisterUserScreen
 import com.techsavvy.tshostelmanagement.ui.hostel.HostelViewModel
+import com.techsavvy.tshostelmanagement.ui.hosteller.AssignHostellerScreen
 
 @Composable
 fun NavGraph(
@@ -136,5 +138,16 @@ fun NavGraphBuilder.adminGraph(navController: NavController) {
         composable(Screens.Admin.Reports.route) { ReportsScreen() }
         composable(Screens.Admin.Profile.route) { ProfileScreen() }
         composable(Screens.Admin.Settings.route) { SettingsScreen(navController) }
+
+        composable("register_user") {
+            RegisterUserScreen(navController)
+        }
+        composable(
+            route = "assign_hosteller_screen/{uid}",
+            arguments = listOf(navArgument("uid") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val uid = backStackEntry.arguments?.getString("uid") ?: ""
+            AssignHostellerScreen(navController = navController, uid = uid)
+        }
     }
 }
