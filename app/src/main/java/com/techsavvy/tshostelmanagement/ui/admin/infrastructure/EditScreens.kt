@@ -62,7 +62,8 @@ fun EditFloorScreen(
 
     val floor by viewModel.selectedFloor.collectAsState()
     var floorName by remember(floor) { mutableStateOf(floor?.name ?: "") }
-    var floorNumber by remember(floor) { mutableStateOf(floor?.floorNumber?.toString() ?: "") }
+    var floorNumber by remember(floor) { mutableStateOf(floor?.
+    floorNumber?.toString() ?: "") }
     var description by remember(floor) { mutableStateOf(floor?.description ?: "") }
 
     Scaffold(
