@@ -18,7 +18,6 @@ import javax.inject.Inject
 class AssignHostellerViewModel @Inject constructor(
     private val db: FirebaseFirestore
 ) : ViewModel() {
-
     private val _users = MutableStateFlow<List<User>>(emptyList())
     val users = _users.asStateFlow()
 

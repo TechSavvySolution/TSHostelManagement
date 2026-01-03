@@ -5,6 +5,6 @@ data class User(
     val name: String = "",
     val email: String = "",
     val phone: String = "",
-    val role: String = "hosteller",
-    val active: Boolean = true
+    val role: String = "HOSTELLER",
+    val active: Boolean = false
 )

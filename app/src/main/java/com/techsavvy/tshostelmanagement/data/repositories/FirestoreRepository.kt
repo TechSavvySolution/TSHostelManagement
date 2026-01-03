@@ -2,7 +2,7 @@ package com.techsavvy.tshostelmanagement.data.repositories
 
 import com.google.firebase.firestore.FirebaseFirestore
 import com.techsavvy.tshostelmanagement.data.models.HostellerRoom
-import com.techsavvy.tshostelmanagement.models.User
+import com.techsavvy.tshostelmanagement.data.models.User
 import javax.inject.Inject
 import javax.inject.Singleton
 

@@ -3,7 +3,6 @@ package com.techsavvy.tshostelmanagement.ui.auth
 import androidx.lifecycle.ViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.toObject
 import com.techsavvy.tshostelmanagement.data.models.User
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,7 +30,7 @@ class AuthViewModel @Inject constructor(
                             .get()
                             .addOnSuccessListener { document ->
                                 if (document != null && document.exists()) {
-                                    val user = document.toObject<User>()
+                                    val user = document.toObject(User::class.java)
                                     _authState.value = AuthState.Authenticated(user)
                                 } else {
                                     _authState.value = AuthState.Error("User data not found in Firestore.")
