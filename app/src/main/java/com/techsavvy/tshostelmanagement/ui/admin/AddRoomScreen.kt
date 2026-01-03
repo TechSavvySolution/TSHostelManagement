@@ -26,7 +26,9 @@ fun AddRoomScreen(viewModel: HostelViewModel = hiltViewModel()) {
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        ExposedDropdownMenuBox(expanded = blockExpanded, onExpandedChange = { blockExpanded = !blockExpanded }) {
+        ExposedDropdownMenuBox(
+            expanded = blockExpanded,
+            onExpandedChange = { blockExpanded = !blockExpanded }) {
             OutlinedTextField(
                 value = selectedBlock?.name ?: "",
                 onValueChange = {},
@@ -35,8 +37,10 @@ fun AddRoomScreen(viewModel: HostelViewModel = hiltViewModel()) {
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = blockExpanded) },
                 modifier = Modifier.fillMaxWidth().menuAnchor()
             )
-            ExposedDropdownMenu(expanded = blockExpanded, onDismissRequest = { blockExpanded = false }) {
-                blocks.forEach {                  
+            ExposedDropdownMenu(
+                expanded = blockExpanded,
+                onDismissRequest = { blockExpanded = false }) {
+                blocks.forEach {
                     DropdownMenuItem(text = { Text(it.name) }, onClick = {
                         selectedBlock = it
                         viewModel.getFloorsForBlock(it.id)
@@ -46,7 +50,9 @@ fun AddRoomScreen(viewModel: HostelViewModel = hiltViewModel()) {
             }
         }
         Spacer(modifier = Modifier.height(16.dp))
-        ExposedDropdownMenuBox(expanded = floorExpanded, onExpandedChange = { floorExpanded = !floorExpanded }) {
+        ExposedDropdownMenuBox(
+            expanded = floorExpanded,
+            onExpandedChange = { floorExpanded = !floorExpanded }) {
             OutlinedTextField(
                 value = selectedFloor?.name ?: "",
                 onValueChange = {},
@@ -56,8 +62,10 @@ fun AddRoomScreen(viewModel: HostelViewModel = hiltViewModel()) {
                 modifier = Modifier.fillMaxWidth().menuAnchor(),
                 enabled = selectedBlock != null
             )
-            ExposedDropdownMenu(expanded = floorExpanded, onDismissRequest = { floorExpanded = false }) {
-                floors.forEach {                  
+            ExposedDropdownMenu(
+                expanded = floorExpanded,
+                onDismissRequest = { floorExpanded = false }) {
+                floors.forEach {
                     DropdownMenuItem(text = { Text(it.name) }, onClick = {
                         selectedFloor = it
                         floorExpanded = false
@@ -89,22 +97,31 @@ fun AddRoomScreen(viewModel: HostelViewModel = hiltViewModel()) {
         Spacer(modifier = Modifier.height(16.dp))
         Button(
             onClick = {
-                selectedFloor?.let {
-                    val finalRoomName = if (roomNumber.isNotBlank()) "$roomName $roomNumber" else roomName
-                    viewModel.addRoom(
-                        name = finalRoomName,
-                        floorId = it.id,
-                        capacity = roomCapacity.toIntOrNull() ?: 0
-                    )
-                    roomName = ""
-                    roomNumber = ""
-                    roomCapacity = ""
+                selectedBlock?.let { block ->
+                    selectedFloor?.let { floor ->
+                        // Convert roomNumber and roomCapacity to Int before passing
+                        val number = roomNumber.toIntOrNull() ?: 0
+                        val capacity = roomCapacity.toIntOrNull() ?: 0
+
+                        viewModel.addRoom(
+                            name = roomName,
+                            roomNumber = number, // Pass the converted integer
+                            floorId = floor.id,
+                            blockId = block.id, // Add the missing blockId
+                            capacity = capacity
+                        )
+                        // Reset fields
+                        roomName = ""
+                        roomNumber = ""
+                        roomCapacity = ""
+                    }
                 }
             },
             modifier = Modifier.fillMaxWidth(),
-            enabled = selectedFloor != null
+            enabled = selectedFloor != null && selectedBlock != null
         ) {
             Text("Add Room")
         }
     }
+
 }

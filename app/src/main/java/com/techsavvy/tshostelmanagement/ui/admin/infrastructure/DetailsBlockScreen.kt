@@ -1,6 +1,5 @@
 package com.techsavvy.tshostelmanagement.ui.admin.infrastructure
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -14,11 +13,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.techsavvy.tshostelmanagement.ui.hostel.HostelViewModel
 
@@ -38,7 +36,16 @@ fun DetailsBlockScreen(
         StyledConfirmationDialog(
             onConfirm = {
                 if (blockId != null) {
-                    viewModel.deleteBlock(blockId)
+                    // Before deleting the block, we must delete all floors and rooms within it
+                    // to prevent orphaned data in your database.
+                    floors.forEach { floor ->
+                        val roomsOnThisFloor = rooms.filter { it.floorId == floor.id }
+                        roomsOnThisFloor.forEach { room ->
+                            viewModel.deleteItem("room", room.id)
+                        }
+                        viewModel.deleteItem("floor", floor.id)
+                    }
+                    viewModel.deleteItem("block", blockId)
                     navController.popBackStack()
                 }
                 showDeleteConfirmation.value = false
@@ -248,78 +255,6 @@ fun DetailsBlockScreen(
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
-        }
-    }
-}
-
-@Composable
-fun StyledConfirmationDialog(
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit,
-    title: String,
-    text: String
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(title, fontWeight = FontWeight.Bold, fontSize = 20.sp) },
-        text = { Text(text, fontSize = 16.sp) },
-        confirmButton = {
-            Button(
-                onClick = onConfirm,
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
-            ) {
-                Text("Confirm")
-            }
-        },
-        dismissButton = {
-            OutlinedButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
-        }
-    )
-}
-
-enum class Status {
-    ACTIVE,
-    INACTIVE
-}
-
-@Composable
-fun StatusChip(status: Status) {
-    val backgroundColor = when (status) {
-        Status.ACTIVE -> Color.Green.copy(alpha = 0.5f)
-        Status.INACTIVE -> Color.Red.copy(alpha = 0.5f)
-    }
-    Box(
-        modifier = Modifier
-            .background(backgroundColor, RoundedCornerShape(50))
-            .padding(horizontal = 8.dp, vertical = 4.dp)
-    ) {
-        Text(
-            text = status.name,
-            color = Color.White,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Bold
-        )
-    }
-}
-
-@Composable
-fun StatCard(title: String, value: String, icon: ImageVector, modifier: Modifier = Modifier) {
-    Card(
-        modifier = modifier,
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.1f))
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Icon(icon, contentDescription = title, tint = Color.White)
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(text = value, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.White)
-            Text(text = title, fontSize = 14.sp, color = Color.White.copy(alpha = 0.7f))
         }
     }
 }
