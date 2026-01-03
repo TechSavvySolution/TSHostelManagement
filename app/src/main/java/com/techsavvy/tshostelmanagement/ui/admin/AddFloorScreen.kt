@@ -68,7 +68,7 @@ fun AddFloorScreen(viewModel: HostelViewModel = hiltViewModel()) {
         Button(
             onClick = {
                 selectedBlock?.let {
-                    viewModel.addFloor(floorName, floorNumber.toIntOrNull() ?: 0, description, it.id)
+                    viewModel.addFloor(floorName, it.id, description)
                     floorName = ""
                     floorNumber = ""
                     description = ""

@@ -90,12 +90,11 @@ fun AddRoomScreen(viewModel: HostelViewModel = hiltViewModel()) {
         Button(
             onClick = {
                 selectedFloor?.let {
+                    val finalRoomName = if (roomNumber.isNotBlank()) "$roomName $roomNumber" else roomName
                     viewModel.addRoom(
-                        name = roomName,
-                        roomNumber = roomNumber.toIntOrNull() ?: 0,
-                        capacity = roomCapacity.toIntOrNull() ?: 0,
+                        name = finalRoomName,
                         floorId = it.id,
-                        blockId = it.blockId
+                        capacity = roomCapacity.toIntOrNull() ?: 0
                     )
                     roomName = ""
                     roomNumber = ""

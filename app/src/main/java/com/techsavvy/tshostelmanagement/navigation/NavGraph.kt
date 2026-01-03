@@ -14,6 +14,8 @@ import androidx.navigation.navigation
 import com.techsavvy.tshostelmanagement.ui.admin.complaints.ComplaintsScreen
 import com.techsavvy.tshostelmanagement.ui.admin.fees.FeesScreen
 import com.techsavvy.tshostelmanagement.ui.admin.home.AdminHomeScreen
+import com.techsavvy.tshostelmanagement.ui.admin.hostellers.AddUserScreen
+import com.techsavvy.tshostelmanagement.ui.admin.hostellers.AssignHostellerScreen as AdminAssignHostellerScreen
 import com.techsavvy.tshostelmanagement.ui.admin.hostellers.HostellersScreen
 import com.techsavvy.tshostelmanagement.ui.admin.infrastructure.* // Import all infrastructure screens
 import com.techsavvy.tshostelmanagement.ui.admin.profile.ProfileScreen
@@ -131,7 +133,7 @@ fun NavGraphBuilder.adminGraph(navController: NavController) {
                 roomId = backStackEntry.arguments?.getString("roomId")
             )
         }
-        composable(Screens.Admin.Hostellers.route) { HostellersScreen() }
+        composable(Screens.Admin.Hostellers.route) { HostellersScreen(navController) }
         composable(Screens.Admin.Staff.route) { StaffScreen() }
         composable(Screens.Admin.Complaints.route) { ComplaintsScreen() }
         composable(Screens.Admin.Fees.route) { FeesScreen() }
@@ -148,6 +150,14 @@ fun NavGraphBuilder.adminGraph(navController: NavController) {
         ) { backStackEntry ->
             val uid = backStackEntry.arguments?.getString("uid") ?: ""
             AssignHostellerScreen(navController = navController, uid = uid)
+        }
+        
+        composable("add_user"){
+            AddUserScreen(navController)
+        }
+
+        composable("assign_hosteller"){
+            AdminAssignHostellerScreen(navController)
         }
     }
 }

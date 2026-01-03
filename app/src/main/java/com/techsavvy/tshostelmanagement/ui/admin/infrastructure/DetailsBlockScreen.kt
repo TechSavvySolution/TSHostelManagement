@@ -1,5 +1,6 @@
 package com.techsavvy.tshostelmanagement.ui.admin.infrastructure
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -13,14 +14,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.techsavvy.tshostelmanagement.ui.hostel.HostelViewModel
-import java.text.SimpleDateFormat
-import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -84,6 +84,7 @@ fun DetailsBlockScreen(
 
         val currentBlock = block
         if (currentBlock != null) {
+            val roomsInBlock = rooms.filter { room -> floors.any { floor -> floor.id == room.floorId } }
             Column(
                 modifier = Modifier
                     .padding(paddingValues)
@@ -119,8 +120,8 @@ fun DetailsBlockScreen(
                             Spacer(modifier = Modifier.height(16.dp))
                             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                                 StatCard(title = "Floors", value = floors.size.toString(), icon = Icons.Default.Apartment, modifier = Modifier.weight(1f))
-                                StatCard(title = "Rooms", value = rooms.count { it.blockId == blockId }.toString(), icon = Icons.Default.KingBed, modifier = Modifier.weight(1f))
-                                StatCard(title = "Capacity", value = rooms.sumOf { it.capacity }.toString(), icon = Icons.Default.Group, modifier = Modifier.weight(1f))
+                                StatCard(title = "Rooms", value = roomsInBlock.size.toString(), icon = Icons.Default.KingBed, modifier = Modifier.weight(1f))
+                                StatCard(title = "Capacity", value = roomsInBlock.sumOf { it.capacity }.toString(), icon = Icons.Default.Group, modifier = Modifier.weight(1f))
                             }
                         }
                     }
@@ -135,17 +136,15 @@ fun DetailsBlockScreen(
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("Block Type", color = Color.White.copy(alpha = 0.7f))
-                        Text(currentBlock.blockType, color = Color.White, fontWeight = FontWeight.SemiBold)
+                        Text("Block Name", color = Color.White.copy(alpha = 0.7f))
+                        Text(currentBlock.name, color = Color.White, fontWeight = FontWeight.SemiBold)
                     }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("Created On", color = Color.White.copy(alpha = 0.7f))
-                        Text(
-                            text = currentBlock.createdDate?.let { SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(it) } ?: "N/A",
-                            color = Color.White,
-                            fontWeight = FontWeight.SemiBold
-                        )
+                    currentBlock.alias?.let {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("Alias", color = Color.White.copy(alpha = 0.7f))
+                            Text(it, color = Color.White, fontWeight = FontWeight.SemiBold)
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(24.dp))
@@ -249,6 +248,78 @@ fun DetailsBlockScreen(
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
+        }
+    }
+}
+
+@Composable
+fun StyledConfirmationDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+    title: String,
+    text: String
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title, fontWeight = FontWeight.Bold, fontSize = 20.sp) },
+        text = { Text(text, fontSize = 16.sp) },
+        confirmButton = {
+            Button(
+                onClick = onConfirm,
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+            ) {
+                Text("Confirm")
+            }
+        },
+        dismissButton = {
+            OutlinedButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
+enum class Status {
+    ACTIVE,
+    INACTIVE
+}
+
+@Composable
+fun StatusChip(status: Status) {
+    val backgroundColor = when (status) {
+        Status.ACTIVE -> Color.Green.copy(alpha = 0.5f)
+        Status.INACTIVE -> Color.Red.copy(alpha = 0.5f)
+    }
+    Box(
+        modifier = Modifier
+            .background(backgroundColor, RoundedCornerShape(50))
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+    ) {
+        Text(
+            text = status.name,
+            color = Color.White,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold
+        )
+    }
+}
+
+@Composable
+fun StatCard(title: String, value: String, icon: ImageVector, modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.1f))
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Icon(icon, contentDescription = title, tint = Color.White)
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(text = value, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.White)
+            Text(text = title, fontSize = 14.sp, color = Color.White.copy(alpha = 0.7f))
         }
     }
 }

@@ -101,8 +101,8 @@ class HostelViewModel @Inject constructor(
             }
     }
 
-    fun addFloor(name: String, floorNumber: Int, description: String, blockId: String) {
-        val floor = Floor("", name, floorNumber, description, null, blockId)
+    fun addFloor(name: String, blockId: String, alias: String? = null) {
+        val floor = Floor(name = name, blockId = blockId, alias = alias)
         db.collection("floors").add(floor).addOnSuccessListener { _snackbarChannel.trySend("Floor added successfully") }
     }
 
@@ -131,8 +131,8 @@ class HostelViewModel @Inject constructor(
             }
     }
 
-    fun addRoom(name: String, roomNumber: Int, capacity: Int, floorId: String, blockId: String) {
-        val room = Room("", name, roomNumber, capacity, floorId, blockId)
+    fun addRoom(name: String, floorId: String, capacity: Int) {
+        val room = Room(name = name, floorId = floorId, capacity = capacity)
         db.collection("rooms").add(room).addOnSuccessListener { _snackbarChannel.trySend("Room added successfully") }
     }
 

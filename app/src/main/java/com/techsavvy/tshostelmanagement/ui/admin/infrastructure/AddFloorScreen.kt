@@ -109,7 +109,8 @@ fun AddFloorScreen(navController: NavController, viewModel: HostelViewModel = hi
             Button(
                 onClick = {
                     selectedBlock?.let {
-                        viewModel.addFloor(floorName, floorNumber.toIntOrNull() ?: 0, description, it.id)
+                        val combinedName = if (floorNumber.isNotBlank()) "$floorName $floorNumber" else floorName
+                        viewModel.addFloor(combinedName, it.id, description.ifBlank { null })
                         navController.popBackStack()
                     }
                 },

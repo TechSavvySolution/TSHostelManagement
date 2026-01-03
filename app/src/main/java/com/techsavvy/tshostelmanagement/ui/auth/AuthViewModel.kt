@@ -1,57 +1,80 @@
 package com.techsavvy.tshostelmanagement.ui.auth
 
-import android.util.Log
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.toObject
 import com.techsavvy.tshostelmanagement.data.models.User
 import dagger.hilt.android.lifecycle.HiltViewModel
-import jakarta.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import javax.inject.Inject
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val auth: FirebaseAuth,
     private val db: FirebaseFirestore
 ) : ViewModel() {
-    val currentUser = auth.currentUser
 
-    private var _isLoading = MutableStateFlow(false)
-    val isLoading = _isLoading
-
-    private var _user = MutableStateFlow<User?>(null)
-    val user = _user
+    private val _authState = MutableStateFlow<AuthState>(AuthState.Initial)
+    val authState = _authState.asStateFlow()
 
     fun login(email: String, password: String) {
-        _isLoading.value = true
-
+        _authState.value = AuthState.Loading
         auth.signInWithEmailAndPassword(email, password)
-            .addOnCompleteListener {
-                if (it.isSuccessful) {
-                    val uid = it.result.user?.uid
-
-                    db.collection("users")
-                        .document(uid!!)
-                        .get()
-                        .addOnCompleteListener {
-                            _isLoading.value = false
-                            if (it.isSuccessful) {
-                                _user.value = it.result.toObject<User>()
-                                Log.d("USER VALUE",user.value.toString())
-                            } else {
-                                it.exception?.printStackTrace()
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val uid = task.result.user?.uid
+                    if (uid != null) {
+                        db.collection("users")
+                            .document(uid)
+                            .get()
+                            .addOnSuccessListener { document ->
+                                if (document != null && document.exists()) {
+                                    val user = document.toObject<User>()
+                                    _authState.value = AuthState.Authenticated(user)
+                                } else {
+                                    _authState.value = AuthState.Error("User data not found in Firestore.")
+                                }
                             }
-                        }
+                            .addOnFailureListener { exception ->
+                                _authState.value = AuthState.Error(exception.message ?: "Failed to fetch user data.")
+                            }
+                    } else {
+                        _authState.value = AuthState.Error("Authentication failed: User not found.")
+                    }
                 } else {
-                    _isLoading.value = false
-                    it.exception?.printStackTrace()
+                    _authState.value = AuthState.Error(task.exception?.message ?: "Authentication failed.")
                 }
             }
-            .addOnFailureListener {
-                _isLoading.value = false
-                it.printStackTrace()
+    }
+
+    fun registerUser(email: String, password: String, username: String, phone: String) {
+        _authState.value = AuthState.Loading
+        auth.createUserWithEmailAndPassword(email, password)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val firebaseUser = auth.currentUser
+                    firebaseUser?.let {
+                        val user = User(
+                            uid = it.uid,
+                            name = username,
+                            email = email,
+                            phone = phone,
+                            role = "hosteller",
+                            active = true
+                        )
+                        db.collection("users").document(it.uid).set(user)
+                            .addOnSuccessListener {
+                                _authState.value = AuthState.Authenticated(user)
+                            }
+                            .addOnFailureListener { e ->
+                                _authState.value = AuthState.Error(e.message ?: "Something went wrong")
+                            }
+                    }
+                } else {
+                    _authState.value = AuthState.Error(task.exception?.message ?: "Authentication failed")
+                }
             }
     }
 }

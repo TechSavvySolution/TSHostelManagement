@@ -5,10 +5,30 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -20,11 +40,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.techsavvy.tshostelmanagement.R
 import androidx.navigation.NavHostController
+import com.techsavvy.tshostelmanagement.R
 import com.techsavvy.tshostelmanagement.navigation.Screens
 
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(navController: NavHostController, viewModel: AuthViewModel) {
 
@@ -32,15 +52,42 @@ fun LoginScreen(navController: NavHostController, viewModel: AuthViewModel) {
     val alpha = remember { Animatable(0f) }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-
-
-
-
-
+    val authState by viewModel.authState.collectAsState()
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         scale.animateTo(1f, tween(800))
         alpha.animateTo(1f, tween(700))
+    }
+
+    LaunchedEffect(authState) {
+        when (val state = authState) {
+            is AuthState.Authenticated -> {
+                val user = state.user
+                if (user != null) {
+                    if (!user.active) {
+                        Toast.makeText(context, "Your account is disabled.", Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(context, "Login Successful", Toast.LENGTH_SHORT).show()
+                        val destination = when (user.role) {
+                            "ADMIN" -> Screens.Admin.Home.route
+                            "STAFF" -> Screens.Staff.Home.route
+                            "HOSTELER" -> Screens.Hosteler.Home.route
+                            else -> null
+                        }
+                        destination?.let {
+                            navController.navigate(it) {
+                                popUpTo(Screens.Login.route) { inclusive = true }
+                            }
+                        }
+                    }
+                }
+            }
+            is AuthState.Error -> {
+                Toast.makeText(context, state.message, Toast.LENGTH_LONG).show()
+            }
+            else -> Unit
+        }
     }
 
     Box(
@@ -148,39 +195,18 @@ fun LoginScreen(navController: NavHostController, viewModel: AuthViewModel) {
                     shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF7DD3FC)
-                    )
+                    ),
+                    enabled = authState !is AuthState.Loading
                 ) {
-                    viewModel.isLoading.collectAsState().value.let {
-                        if (it) {
-                            CircularProgressIndicator()
-                        } else {
-                            Text(
-                                text = "LOGIN",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.Black
-                            )
-                        }
-                    }
-                    val context = LocalContext.current
-
-                    viewModel.user.collectAsState().value.let {
-                        if (it != null) {
-
-                            if(!it.active){
-                                LaunchedEffect(true) {
-                                    Toast.makeText(context, "You're account is disabled.", Toast.LENGTH_SHORT).show()
-                                }
-                            }else {
-                                LaunchedEffect(true) {
-                                    when (it.role) {
-                                        "ADMIN" -> navController.navigate(Screens.Admin.Home.route)
-                                        "STAFF" -> navController.navigate(Screens.Staff.Home.route)
-                                        "HOSTELER" -> navController.navigate(Screens.Hosteler.Home.route)
-                                    }
-                                }
-                            }
-                        }
+                    if (authState is AuthState.Loading) {
+                        CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.Black)
+                    } else {
+                        Text(
+                            text = "LOGIN",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black
+                        )
                     }
                 }
             }

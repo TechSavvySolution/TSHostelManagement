@@ -1,15 +1,10 @@
 package com.techsavvy.tshostelmanagement.data.models
 
-data class User (
-    val uid :String,
-    val email :String,
-    val phone:String,
-    val password : String,
-    //STAFF, HOSTELER, ADMIN
-    val role : String,
-    val name : String,
-    val active : Boolean,
-    val createdAt : Long = System.currentTimeMillis()
-){
-    constructor():this("","","","","","",true,System.currentTimeMillis())
-}
+data class User(
+    val uid: String = "",
+    val name: String = "",
+    val email: String = "",
+    val phone: String = "",
+    val role: String = "hosteller",
+    val active: Boolean = true
+)
