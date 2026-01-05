@@ -2,21 +2,23 @@ package com.techsavvy.tshostelmanagement.ui.admin.hostellers
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.toObjects
 import com.techsavvy.tshostelmanagement.data.models.Block
 import com.techsavvy.tshostelmanagement.data.models.Floor
+import com.techsavvy.tshostelmanagement.data.models.HostellerRoom
 import com.techsavvy.tshostelmanagement.data.models.Room
 import com.techsavvy.tshostelmanagement.data.models.User
+import com.techsavvy.tshostelmanagement.data.repositories.FirestoreRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class AssignHostellerViewModel @Inject constructor(
-    private val db: FirebaseFirestore
+    private val repository: FirestoreRepository
 ) : ViewModel() {
     private val _users = MutableStateFlow<List<User>>(emptyList())
     val users = _users.asStateFlow()
@@ -36,40 +38,29 @@ class AssignHostellerViewModel @Inject constructor(
     }
 
     private fun fetchUsers() {
-        db.collection("users").whereEqualTo("role", "hosteller")
-            .addSnapshotListener { snapshot, _ ->
-                snapshot?.let { _users.value = it.toObjects() }
-            }
+        repository.getUsers().onEach { _users.value = it }.launchIn(viewModelScope)
     }
 
     private fun fetchBlocks() {
-        db.collection("blocks")
-            .addSnapshotListener { snapshot, _ ->
-                snapshot?.let { _blocks.value = it.toObjects() }
-            }
+        repository.getBlocks().onEach { _blocks.value = it }.launchIn(viewModelScope)
     }
 
     fun fetchFloors(blockId: String) {
-        db.collection("floors").whereEqualTo("blockId", blockId)
-            .addSnapshotListener { snapshot, _ ->
-                snapshot?.let { _floors.value = it.toObjects() }
-            }
+        repository.getFloors(blockId).onEach { _floors.value = it }.launchIn(viewModelScope)
     }
 
     fun fetchRooms(floorId: String) {
-        db.collection("rooms").whereEqualTo("floorId", floorId)
-            .addSnapshotListener { snapshot, _ ->
-                snapshot?.let { _rooms.value = it.toObjects() }
-            }
+        repository.getRooms(floorId).onEach { _rooms.value = it }.launchIn(viewModelScope)
     }
 
     fun assignHosteller(userId: String, roomId: String, notes: String) {
-        val assignment = hashMapOf(
-            "userId" to userId,
-            "roomId" to roomId,
-            "notes" to notes,
-            "assignedAt" to System.currentTimeMillis()
-        )
-        db.collection("hosteller_room").add(assignment)
+        viewModelScope.launch {
+            val assignment = HostellerRoom(
+                uid = userId,
+                roomId = roomId,
+                notes = notes
+            )
+            repository.assignHostellerRoom(assignment)
+        }
     }
 }

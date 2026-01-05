@@ -1,79 +1,72 @@
 package com.techsavvy.tshostelmanagement.ui.auth
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
 import com.techsavvy.tshostelmanagement.data.models.User
+import com.techsavvy.tshostelmanagement.data.repositories.FirestoreRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val auth: FirebaseAuth,
-    private val db: FirebaseFirestore
+    private val repository: FirestoreRepository
 ) : ViewModel() {
 
     private val _authState = MutableStateFlow<AuthState>(AuthState.Initial)
     val authState = _authState.asStateFlow()
 
     fun login(email: String, password: String) {
-        _authState.value = AuthState.Loading
-        auth.signInWithEmailAndPassword(email, password)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    val uid = task.result.user?.uid
-                    if (uid != null) {
-                        db.collection("users")
-                            .document(uid)
-                            .get()
-                            .addOnSuccessListener { document ->
-                                if (document != null && document.exists()) {
-                                    val user = document.toObject(User::class.java)
-                                    _authState.value = AuthState.Authenticated(user)
-                                } else {
-                                    _authState.value = AuthState.Error("User data not found in Firestore.")
-                                }
-                            }
-                            .addOnFailureListener { exception ->
-                                _authState.value = AuthState.Error(exception.message ?: "Failed to fetch user data.")
-                            }
+        viewModelScope.launch {
+            _authState.value = AuthState.Loading
+            try {
+                val result = auth.signInWithEmailAndPassword(email, password).await()
+                val uid = result.user?.uid
+                if (uid != null) {
+                    val user = repository.getUser(uid)
+                    if (user != null) {
+                        _authState.value = AuthState.Authenticated(user)
                     } else {
-                        _authState.value = AuthState.Error("Authentication failed: User not found.")
+                        _authState.value = AuthState.Error("User data not found.")
                     }
                 } else {
-                    _authState.value = AuthState.Error(task.exception?.message ?: "Authentication failed.")
+                    _authState.value = AuthState.Error("Authentication failed: User not found.")
                 }
+            } catch (e: Exception) {
+                _authState.value = AuthState.Error(e.message ?: "Authentication failed.")
             }
+        }
     }
 
     fun registerUser(email: String, password: String, username: String, phone: String) {
-        _authState.value = AuthState.Loading
-        auth.createUserWithEmailAndPassword(email, password)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    val firebaseUser = auth.currentUser
-                    firebaseUser?.let {
-                        val user = User(
-                            uid = it.uid,
-                            name = username,
-                            email = email,
-                            phone = phone,
-                            role = "hosteller",
-                            active = true
-                        )
-                        db.collection("users").document(it.uid).set(user)
-                            .addOnSuccessListener {
-                                _authState.value = AuthState.Authenticated(user)
-                            }
-                            .addOnFailureListener { e ->
-                                _authState.value = AuthState.Error(e.message ?: "Something went wrong")
-                            }
-                    }
-                } else {
-                    _authState.value = AuthState.Error(task.exception?.message ?: "Authentication failed")
+        viewModelScope.launch {
+            _authState.value = AuthState.Loading
+            try {
+                val result = auth.createUserWithEmailAndPassword(email, password).await()
+                val firebaseUser = result.user
+                firebaseUser?.let {
+                    val user = User(
+                        uid = it.uid,
+                        name = username,
+                        email = email,
+                        pass = password,
+                        phone = phone,
+                        role = "hosteller",
+                        active = true
+                    )
+                    repository.saveUser(user)
+                    _authState.value = AuthState.Authenticated(user)
+                } ?: run {
+                    _authState.value = AuthState.Error("Registration failed: User could not be created.")
                 }
+            } catch (e: Exception) {
+                _authState.value = AuthState.Error(e.message ?: "Registration failed.")
             }
+        }
     }
 }
