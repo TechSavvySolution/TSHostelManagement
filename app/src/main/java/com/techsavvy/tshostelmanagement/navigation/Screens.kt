@@ -17,7 +17,7 @@ sealed class Screens(val route: String, val title: String = "") {
         object AddBlock : Screens("admin_add_block", "Add Block")
         object AddFloor : Screens("admin_add_floor", "Add Floor")
         object AddRoom : Screens("admin_add_room", "Add Room")
-        object EditBlock : Screens("admin_edit_block/{blockId}", "Edit Block") {
+        object EditBlock : Screens("admin_edit_block", "Edit Block") {
             fun createRoute(blockId: String) = "admin_edit_block/$blockId"
         }
         object EditFloor : Screens("admin_edit_floor/{floorId}", "Edit Floor") {

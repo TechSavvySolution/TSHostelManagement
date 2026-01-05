@@ -22,10 +22,4 @@ object AppModule {
     fun provideFirebaseFirestore(): FirebaseFirestore {
         return FirebaseFirestore.getInstance()
     }
-
-    @Provides
-    @Singleton
-    fun provideFirestoreRepository(firestore: FirebaseFirestore): FirestoreRepository {
-        return FirestoreRepository(firestore)
-    }
 }

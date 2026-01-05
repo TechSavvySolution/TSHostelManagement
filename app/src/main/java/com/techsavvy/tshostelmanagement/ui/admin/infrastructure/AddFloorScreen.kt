@@ -30,7 +30,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.techsavvy.tshostelmanagement.data.models.Block
-import com.techsavvy.tshostelmanagement.ui.hostel.HostelViewModel
+import com.techsavvy.tshostelmanagement.ui.admin.infrastructure.HostelViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

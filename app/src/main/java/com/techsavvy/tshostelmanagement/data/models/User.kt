@@ -11,6 +11,5 @@ data class User(
     val phone: String = "",
     val role: String = "HOSTELLER",
     val active: Boolean = false,
-    @ServerTimestamp
-    val createdAt: Date? = null
+    val createdAt: Long? = System.currentTimeMillis()
 )

@@ -1,4 +1,4 @@
-package com.techsavvy.tshostelmanagement.ui.hostel
+package com.techsavvy.tshostelmanagement.ui.admin.infrastructure
 
 import androidx.lifecycle.ViewModel
 import com.google.firebase.firestore.FirebaseFirestore

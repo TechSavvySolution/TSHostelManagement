@@ -17,7 +17,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.techsavvy.tshostelmanagement.data.models.Block
 import com.techsavvy.tshostelmanagement.data.models.Floor
-import com.techsavvy.tshostelmanagement.ui.hostel.HostelViewModel
+import com.techsavvy.tshostelmanagement.ui.admin.infrastructure.HostelViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -15,6 +15,7 @@ import com.techsavvy.tshostelmanagement.ui.admin.complaints.ComplaintsScreen
 import com.techsavvy.tshostelmanagement.ui.admin.fees.FeesScreen
 import com.techsavvy.tshostelmanagement.ui.admin.home.AdminHomeScreen
 import com.techsavvy.tshostelmanagement.ui.admin.hostellers.AddUserScreen
+import com.techsavvy.tshostelmanagement.ui.admin.hostellers.AssignHostellerScreen
 import com.techsavvy.tshostelmanagement.ui.admin.hostellers.AssignHostellerScreen as AdminAssignHostellerScreen
 import com.techsavvy.tshostelmanagement.ui.admin.hostellers.HostellersScreen
 import com.techsavvy.tshostelmanagement.ui.admin.infrastructure.* // Import all infrastructure screens
@@ -25,8 +26,7 @@ import com.techsavvy.tshostelmanagement.ui.admin.staff.StaffScreen
 import com.techsavvy.tshostelmanagement.ui.auth.AuthViewModel
 import com.techsavvy.tshostelmanagement.ui.auth.LoginScreen
 import com.techsavvy.tshostelmanagement.ui.auth.RegisterUserScreen
-import com.techsavvy.tshostelmanagement.ui.hostel.HostelViewModel
-import com.techsavvy.tshostelmanagement.ui.hosteller.AssignHostellerScreen
+import com.techsavvy.tshostelmanagement.ui.admin.infrastructure.HostelViewModel
 
 @Composable
 fun NavGraph(
@@ -65,13 +65,13 @@ fun NavGraphBuilder.adminGraph(navController: NavController) {
             val viewModel: HostelViewModel = hiltViewModel(parentEntry)
             AddFloorScreen(navController, viewModel)
         }
-        composable("add_room") { backStackEntry ->
+        composable(Screens.Admin.AddRoom.route) { backStackEntry ->
             val parentEntry = remember(backStackEntry) { navController.getBackStackEntry("admin_graph") }
             val viewModel: HostelViewModel = hiltViewModel(parentEntry)
             AddRoomScreen(navController, viewModel)
         }
         composable(
-            route = "edit_block/{blockId}",
+            route = "${Screens.Admin.EditBlock.route}/{blockId}",
             arguments = listOf(navArgument("blockId") { type = NavType.StringType })
         ) { backStackEntry ->
             val parentEntry = remember(backStackEntry) { navController.getBackStackEntry("admin_graph") }
@@ -149,7 +149,7 @@ fun NavGraphBuilder.adminGraph(navController: NavController) {
             arguments = listOf(navArgument("uid") { type = NavType.StringType })
         ) { backStackEntry ->
             val uid = backStackEntry.arguments?.getString("uid") ?: ""
-            AssignHostellerScreen(navController = navController, uid = uid)
+            AssignHostellerScreen(navController = navController,viewModel= hiltViewModel())
         }
         
         composable("add_user"){

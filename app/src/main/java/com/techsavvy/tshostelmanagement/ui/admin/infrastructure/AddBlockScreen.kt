@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.techsavvy.tshostelmanagement.ui.hostel.HostelViewModel
+import com.techsavvy.tshostelmanagement.ui.admin.infrastructure.HostelViewModel
 
 @Composable
 fun AddBlockScreen(

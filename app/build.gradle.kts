@@ -4,7 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     id("com.google.gms.google-services")
     id("dagger.hilt.android.plugin")
-    id("com.google.dagger.hilt.android")
+//    id("com.google.dagger.hilt.android")
     id("kotlin-kapt")
 }
 

@@ -4,15 +4,20 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.firestore.firestore
 import com.google.firebase.Firebase
+import com.google.firebase.firestore.FirebaseFirestore
 import com.techsavvy.tshostelmanagement.data.models.User
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import javax.inject.Inject
 
-class HostellersViewModel : ViewModel() {
+@HiltViewModel
+class HostellersViewModel @Inject constructor(
+    private val db : FirebaseFirestore
+) : ViewModel() {
 
-    private val db = Firebase.firestore
     private val _users = MutableStateFlow<List<User>>(emptyList())
     val users: StateFlow<List<User>> = _users
 

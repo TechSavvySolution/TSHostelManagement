@@ -44,7 +44,7 @@ import androidx.navigation.NavController
 import com.techsavvy.tshostelmanagement.data.models.Block
 import com.techsavvy.tshostelmanagement.data.models.Floor
 import com.techsavvy.tshostelmanagement.data.models.Room
-import com.techsavvy.tshostelmanagement.ui.hostel.HostelViewModel
+import com.techsavvy.tshostelmanagement.ui.admin.infrastructure.HostelViewModel
 import kotlinx.coroutines.flow.collectLatest
 
 private data class FabMenuItemData(val icon: ImageVector, val label: String, val route: String)

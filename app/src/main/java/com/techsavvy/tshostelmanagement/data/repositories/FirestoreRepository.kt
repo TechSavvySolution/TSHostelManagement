@@ -1,5 +1,6 @@
 package com.techsavvy.tshostelmanagement.data.repositories
 
+import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.toObject
 import com.google.firebase.firestore.toObjects
@@ -15,7 +16,6 @@ import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
-@Singleton
 class FirestoreRepository @Inject constructor(private val firestore: FirebaseFirestore) {
 
     fun saveUser(user: User) {
@@ -24,8 +24,10 @@ class FirestoreRepository @Inject constructor(private val firestore: FirebaseFir
 
     suspend fun getUser(uid: String): User? {
         return try {
+            Log.d("FirestoreRepository", "Fetching user with UID: $uid")
             firestore.collection("users").document(uid).get().await().toObject<User>()
         } catch (e: Exception) {
+            e.printStackTrace()
             null
         }
     }
