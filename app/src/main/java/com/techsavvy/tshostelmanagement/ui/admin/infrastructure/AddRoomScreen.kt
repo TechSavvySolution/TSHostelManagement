@@ -17,13 +17,12 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.techsavvy.tshostelmanagement.data.models.Block
 import com.techsavvy.tshostelmanagement.data.models.Floor
-import com.techsavvy.tshostelmanagement.ui.admin.infrastructure.HostelViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddRoomScreen(
     navController: NavController,
-    viewModel: HostelViewModel = hiltViewModel()
+    viewModel: InfrastructureViewModel = hiltViewModel()
 ) {
     val blocks by viewModel.blocks.collectAsState()
     val floors by viewModel.floors.collectAsState()

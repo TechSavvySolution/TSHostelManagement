@@ -18,14 +18,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.techsavvy.tshostelmanagement.ui.admin.infrastructure.HostelViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailsBlockScreen(
     navController: NavController,
     blockId: String?,
-    viewModel: HostelViewModel = hiltViewModel()
+    viewModel: InfrastructureViewModel = hiltViewModel()
 ) {
     val block by viewModel.selectedBlock.collectAsState()
     val floors by viewModel.floors.collectAsState()

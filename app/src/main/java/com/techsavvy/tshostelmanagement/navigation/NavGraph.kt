@@ -26,7 +26,7 @@ import com.techsavvy.tshostelmanagement.ui.admin.staff.StaffScreen
 import com.techsavvy.tshostelmanagement.ui.auth.AuthViewModel
 import com.techsavvy.tshostelmanagement.ui.auth.LoginScreen
 import com.techsavvy.tshostelmanagement.ui.auth.RegisterUserScreen
-import com.techsavvy.tshostelmanagement.ui.admin.infrastructure.HostelViewModel
+import com.techsavvy.tshostelmanagement.ui.admin.infrastructure.InfrastructureViewModel
 
 @Composable
 fun NavGraph(
@@ -52,22 +52,22 @@ fun NavGraphBuilder.adminGraph(navController: NavController) {
         composable(Screens.Admin.Home.route) { AdminHomeScreen(navController) }
         composable(Screens.Admin.Infrastructure.route) { backStackEntry ->
             val parentEntry = remember(backStackEntry) { navController.getBackStackEntry("admin_graph") }
-            val viewModel: HostelViewModel = hiltViewModel(parentEntry)
+            val viewModel: InfrastructureViewModel = hiltViewModel(parentEntry)
             InfrastructureScreen(navController, viewModel)
         }
         composable(Screens.Admin.AddBlock.route) { backStackEntry ->
             val parentEntry = remember(backStackEntry) { navController.getBackStackEntry("admin_graph") }
-            val viewModel: HostelViewModel = hiltViewModel(parentEntry)
+            val viewModel: InfrastructureViewModel = hiltViewModel(parentEntry)
             AddBlockScreen(navController, viewModel)
         }
         composable(Screens.Admin.AddFloor.route) { backStackEntry ->
             val parentEntry = remember(backStackEntry) { navController.getBackStackEntry("admin_graph") }
-            val viewModel: HostelViewModel = hiltViewModel(parentEntry)
+            val viewModel: InfrastructureViewModel = hiltViewModel(parentEntry)
             AddFloorScreen(navController, viewModel)
         }
         composable(Screens.Admin.AddRoom.route) { backStackEntry ->
             val parentEntry = remember(backStackEntry) { navController.getBackStackEntry("admin_graph") }
-            val viewModel: HostelViewModel = hiltViewModel(parentEntry)
+            val viewModel: InfrastructureViewModel = hiltViewModel(parentEntry)
             AddRoomScreen(navController, viewModel)
         }
         composable(
@@ -75,7 +75,7 @@ fun NavGraphBuilder.adminGraph(navController: NavController) {
             arguments = listOf(navArgument("blockId") { type = NavType.StringType })
         ) { backStackEntry ->
             val parentEntry = remember(backStackEntry) { navController.getBackStackEntry("admin_graph") }
-            val viewModel: HostelViewModel = hiltViewModel(parentEntry)
+            val viewModel: InfrastructureViewModel = hiltViewModel(parentEntry)
             EditBlockScreen(
                 navController = navController,
                 viewModel = viewModel,
@@ -87,7 +87,7 @@ fun NavGraphBuilder.adminGraph(navController: NavController) {
             arguments = listOf(navArgument("floorId") { type = NavType.StringType })
         ) { backStackEntry ->
             val parentEntry = remember(backStackEntry) { navController.getBackStackEntry("admin_graph") }
-            val viewModel: HostelViewModel = hiltViewModel(parentEntry)
+            val viewModel: InfrastructureViewModel = hiltViewModel(parentEntry)
             EditFloorScreen(
                 navController = navController,
                 viewModel = viewModel,
@@ -99,7 +99,7 @@ fun NavGraphBuilder.adminGraph(navController: NavController) {
             arguments = listOf(navArgument("roomId") { type = NavType.StringType })
         ) { backStackEntry ->
             val parentEntry = remember(backStackEntry) { navController.getBackStackEntry("admin_graph") }
-            val viewModel: HostelViewModel = hiltViewModel(parentEntry)
+            val viewModel: InfrastructureViewModel = hiltViewModel(parentEntry)
             EditRoomScreen(
                 navController = navController,
                 viewModel = viewModel,

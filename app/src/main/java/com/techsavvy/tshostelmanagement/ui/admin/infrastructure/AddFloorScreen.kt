@@ -30,11 +30,10 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.techsavvy.tshostelmanagement.data.models.Block
-import com.techsavvy.tshostelmanagement.ui.admin.infrastructure.HostelViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddFloorScreen(navController: NavController, viewModel: HostelViewModel = hiltViewModel()) {
+fun AddFloorScreen(navController: NavController, viewModel: InfrastructureViewModel = hiltViewModel()) {
     val blocks by viewModel.blocks.collectAsState()
     var floorName by remember { mutableStateOf("") }
     var floorNumber by remember { mutableStateOf("") }

@@ -11,12 +11,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.techsavvy.tshostelmanagement.ui.admin.infrastructure.HostelViewModel
 
 @Composable
 fun EditBlockScreen(
     navController: NavController,
-    viewModel: HostelViewModel = hiltViewModel(),
+    viewModel: InfrastructureViewModel = hiltViewModel(),
     blockId: String?
 ) {
     LaunchedEffect(blockId) {
@@ -53,7 +52,7 @@ fun EditBlockScreen(
 @Composable
 fun EditFloorScreen(
     navController: NavController,
-    viewModel: HostelViewModel = hiltViewModel(),
+    viewModel: InfrastructureViewModel = hiltViewModel(),
     floorId: String?
 ) {
     LaunchedEffect(floorId) {
@@ -94,7 +93,7 @@ fun EditFloorScreen(
 @Composable
 fun EditRoomScreen(
     navController: NavController,
-    viewModel: HostelViewModel = hiltViewModel(),
+    viewModel: InfrastructureViewModel = hiltViewModel(),
     roomId: String?
 ) {
     LaunchedEffect(roomId) {
