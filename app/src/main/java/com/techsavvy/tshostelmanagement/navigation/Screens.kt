@@ -20,10 +20,10 @@ sealed class Screens(val route: String, val title: String = "") {
         object EditBlock : Screens("admin_edit_block", "Edit Block") {
             fun createRoute(blockId: String) = "admin_edit_block/$blockId"
         }
-        object EditFloor : Screens("admin_edit_floor/{floorId}", "Edit Floor") {
+        object EditFloor : Screens("admin_edit_floor", "Edit Floor") {
             fun createRoute(floorId: String) = "admin_edit_floor/$floorId"
         }
-        object EditRoom : Screens("admin_edit_room/{roomId}", "Edit Room") {
+        object EditRoom : Screens("admin_edit_room", "Edit Room") {
             fun createRoute(roomId: String) = "admin_edit_room/$roomId"
         }
     }
