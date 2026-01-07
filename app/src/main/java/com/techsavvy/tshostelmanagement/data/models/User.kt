@@ -1,7 +1,6 @@
 package com.techsavvy.tshostelmanagement.data.models
 
-import com.google.firebase.firestore.ServerTimestamp
-import java.util.Date
+import com.techsavvy.tshostelmanagement.data.utils.Role
 
 data class User(
     val uid: String = "",
@@ -9,7 +8,7 @@ data class User(
     val email: String = "",
     val pass: String = "",
     val phone: String = "",
-    val role: String = "HOSTELLER",
+    val role: Role = Role.HOSTELER,
     val active: Boolean = false,
-    val createdAt: Long? = System.currentTimeMillis()
+    val created_at: Long? = System.currentTimeMillis()
 )

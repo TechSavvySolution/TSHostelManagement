@@ -38,7 +38,7 @@ class AssignHostellerViewModel @Inject constructor(
     }
 
     private fun fetchUsers() {
-        repository.getUsers().onEach { _users.value = it }.launchIn(viewModelScope)
+        repository.getUnassignedUsers().onEach { _users.value = it }.launchIn(viewModelScope)
     }
 
     private fun fetchBlocks() {

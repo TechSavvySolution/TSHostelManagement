@@ -6,4 +6,6 @@ data class HostellerRoom(
     val active: Boolean = true,
     val createdAt: Long = System.currentTimeMillis(),
     val notes: String? = null
-)
+){
+    constructor():this("","",true,System.currentTimeMillis(),null)
+}

@@ -40,8 +40,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavHostController
 import com.techsavvy.tshostelmanagement.R
+import com.techsavvy.tshostelmanagement.data.utils.Role
 import com.techsavvy.tshostelmanagement.navigation.Screens
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -59,6 +61,13 @@ fun LoginScreen(navController: NavHostController, viewModel: AuthViewModel) {
         scale.animateTo(1f, tween(800))
         alpha.animateTo(1f, tween(700))
     }
+    viewModel.isLoading.collectAsState().value.let{
+        if(it){
+            Dialog(onDismissRequest = {}) {
+                CircularProgressIndicator()
+            }
+        }
+    }
 
     LaunchedEffect(authState) {
         when (val state = authState) {
@@ -70,9 +79,9 @@ fun LoginScreen(navController: NavHostController, viewModel: AuthViewModel) {
                     } else {
                         Toast.makeText(context, "Login Successful", Toast.LENGTH_SHORT).show()
                         val destination = when (user.role) {
-                            "ADMIN" -> Screens.Admin.Home.route
-                            "STAFF" -> Screens.Staff.Home.route
-                            "HOSTELER" -> Screens.Hosteler.Home.route
+                            Role.ADMIN -> Screens.Admin.Home.route
+                            Role.STAFF -> Screens.Staff.Home.route
+                            Role.HOSTELER -> Screens.Hosteler.Home.route
                             else -> null
                         }
                         destination?.let {

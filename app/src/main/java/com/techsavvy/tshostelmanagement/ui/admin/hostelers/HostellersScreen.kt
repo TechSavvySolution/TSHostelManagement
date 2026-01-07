@@ -37,7 +37,7 @@ fun HostellersScreen(
 
     // Observe data from ViewModel
     val allHostellers by viewModel.allHostellers.collectAsState()
-    val assignedHostellers by viewModel.assignedHostellers.collectAsState()
+    val assignedHostellers by viewModel.assignedHostellers.collectAsState(initial = emptyList())
 
     // Decide which list to show based on the tab
     val currentList = if (selectedTab == 0) allHostellers else assignedHostellers

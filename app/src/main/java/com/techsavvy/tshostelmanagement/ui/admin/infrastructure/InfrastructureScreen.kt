@@ -37,6 +37,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.substring
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -439,8 +440,8 @@ data class InfrastructureItem(
         fun fromFloor(floor: Floor) = InfrastructureItem(
             id = floor.id,
             type = "floor",
-            title = "Floor ${floor.name}",
-            subtitle = "Block ID: ${floor.blockId}",
+            title = "${floor.name}",
+            subtitle = floor.blockId.substring(0,4),
             icon = Icons.Default.Apartment,
             color = Color(0xFF8B5CF6),
             status = Status.ACTIVE
@@ -475,12 +476,6 @@ fun InfrastructureGridItem(
     Column(
         modifier = Modifier
             .scale(scale)
-            .shadow(
-                elevation = shadowElevation,
-                shape = RoundedCornerShape(16.dp),
-                ambientColor = item.color.copy(alpha = 0.3f),
-                spotColor = item.color.copy(alpha = 0.3f)
-            )
             .height(170.dp)
             .clip(RoundedCornerShape(16.dp))
             .background(
@@ -503,6 +498,12 @@ fun InfrastructureGridItem(
                 onLongClick = { isMenuExpanded = true }
             )
             .padding(20.dp)
+            .shadow(
+                elevation = 0.dp,
+                shape = RoundedCornerShape(16.dp),
+                ambientColor = item.color.copy(alpha = 0.3f),
+                spotColor = item.color.copy(alpha = 0.3f)
+            )
     ) {
         Row(verticalAlignment = Alignment.Top) {
             Box(

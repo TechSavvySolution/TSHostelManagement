@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.techsavvy.tshostelmanagement.data.models.User
+import com.techsavvy.tshostelmanagement.data.utils.Role
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -41,7 +42,7 @@ class RegisterUserViewModel @Inject constructor(
                                 name = username,
                                 email = email,
                                 phone = phone,
-                                role = "hosteller",
+                                role = Role.HOSTELER,
                                 active = true
                             )
                             db.collection("users").document(it.uid).set(user)
