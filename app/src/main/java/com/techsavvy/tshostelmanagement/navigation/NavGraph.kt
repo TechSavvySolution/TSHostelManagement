@@ -14,10 +14,10 @@ import androidx.navigation.navigation
 import com.techsavvy.tshostelmanagement.ui.admin.complaints.ComplaintsScreen
 import com.techsavvy.tshostelmanagement.ui.admin.fees.FeesScreen
 import com.techsavvy.tshostelmanagement.ui.admin.home.AdminHomeScreen
-import com.techsavvy.tshostelmanagement.ui.admin.hostellers.AddUserScreen
-import com.techsavvy.tshostelmanagement.ui.admin.hostellers.AssignHostellerScreen
-import com.techsavvy.tshostelmanagement.ui.admin.hostellers.AssignHostellerScreen as AdminAssignHostellerScreen
-import com.techsavvy.tshostelmanagement.ui.admin.hostellers.HostellersScreen
+import com.techsavvy.tshostelmanagement.ui.admin.hostelers.AddUserScreen
+import com.techsavvy.tshostelmanagement.ui.admin.hostelers.AssignHostellerScreen
+import com.techsavvy.tshostelmanagement.ui.admin.hostelers.AssignHostellerScreen as AdminAssignHostellerScreen
+import com.techsavvy.tshostelmanagement.ui.admin.hostelers.HostellersScreen
 import com.techsavvy.tshostelmanagement.ui.admin.infrastructure.* // Import all infrastructure screens
 import com.techsavvy.tshostelmanagement.ui.admin.profile.ProfileScreen
 import com.techsavvy.tshostelmanagement.ui.admin.reports.ReportsScreen
@@ -107,7 +107,7 @@ fun NavGraphBuilder.adminGraph(navController: NavController) {
             )
         }
         composable(
-            route = "details_block/{blockId}",
+            route = "${Screens.Admin.DetailsBlock.route}/{blockId}",
             arguments = listOf(navArgument("blockId") { type = NavType.StringType })
         ) { backStackEntry ->
             DetailsBlockScreen(
@@ -116,7 +116,7 @@ fun NavGraphBuilder.adminGraph(navController: NavController) {
             )
         }
         composable(
-            route = "details_floor/{floorId}",
+            route = "${Screens.Admin.DetailsFloor.route}/{floorId}",
             arguments = listOf(navArgument("floorId") { type = NavType.StringType })
         ) { backStackEntry ->
             DetailsFloorScreen(
@@ -125,7 +125,7 @@ fun NavGraphBuilder.adminGraph(navController: NavController) {
             )
         }
         composable(
-            route = "details_room/{roomId}",
+            route = "${Screens.Admin.DetailsRoom.route}/{roomId}",
             arguments = listOf(navArgument("roomId") { type = NavType.StringType })
         ) { backStackEntry ->
             DetailsRoomScreen(

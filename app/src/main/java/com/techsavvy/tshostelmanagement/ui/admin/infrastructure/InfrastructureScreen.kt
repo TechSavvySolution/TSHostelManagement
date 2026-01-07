@@ -44,6 +44,7 @@ import androidx.navigation.NavController
 import com.techsavvy.tshostelmanagement.data.models.Block
 import com.techsavvy.tshostelmanagement.data.models.Floor
 import com.techsavvy.tshostelmanagement.data.models.Room
+import com.techsavvy.tshostelmanagement.navigation.Screens
 import kotlinx.coroutines.flow.collectLatest
 
 private data class FabMenuItemData(val icon: ImageVector, val label: String, val route: String)
@@ -216,9 +217,50 @@ fun InfrastructureScreen(
                                 items(allItems, key = { "${it.type}_${it.id}" }) { item ->
                                     InfrastructureGridItem(
                                         item = item,
-                                        onEdit = { navController.navigate("edit_${item.type}/${item.id}") },
+                                        onEdit ={ when (item.type.lowercase()) {
+                                            "block" -> {
+                                                navController.navigate(
+                                                    "${Screens.Admin.EditBlock.route}/${item.id}"
+                                                )
+                                            }
+
+                                            "floor" -> {
+                                                navController.navigate(
+                                                    "${Screens.Admin.EditFloor.route}/${item.id}"
+                                                )
+                                            }
+
+                                            "room" -> {
+                                                navController.navigate(
+                                                    "${Screens.Admin.EditRoom.route}/${item.id}"
+                                                )
+                                            }
+                                        }
+                                        },
                                         onDelete = { showDeleteConfirmation = Pair(item.type) { viewModel.deleteItem(item.type, item.id) } },
-                                        onViewDetails = { navController.navigate("details_${item.type}/${item.id}") }
+                                        onViewDetails = {
+                                            when (item.type.lowercase()) {
+
+                                                "block" -> {
+                                                    navController.navigate(
+                                                        "${Screens.Admin.DetailsBlock.route}/${item.id}"
+                                                    )
+                                                }
+
+                                                "floor" -> {
+                                                    navController.navigate(
+                                                        "${Screens.Admin.DetailsFloor.route}/${item.id}"
+                                                    )
+                                                }
+
+                                                "room" -> {
+                                                    navController.navigate(
+                                                        "${Screens.Admin.DetailsRoom.route}/${item.id}"
+                                                    )
+                                                }
+                                            }
+                                        }
+
                                     )
                                 }
                             }
@@ -237,9 +279,9 @@ fun InfrastructureScreen(
                                 items(filteredBlocks, key = { "block_tab_${it.id}" }) { block ->
                                     InfrastructureGridItem(
                                         item = InfrastructureItem.fromBlock(block, floors, rooms),
-                                        onEdit = { navController.navigate("edit_block/${block.id}") },
+                                        onEdit = { navController.navigate(Screens.Admin.EditBlock.route + "/" + block.id)},
                                         onDelete = { showDeleteConfirmation = Pair("block") { viewModel.deleteBlock(block.id) } },
-                                        onViewDetails = { navController.navigate("details_block/${block.id}") }
+                                        onViewDetails = { navController.navigate(Screens.Admin.DetailsBlock.route + "/" + block.id) }
                                     )
                                 }
                             }
@@ -257,9 +299,9 @@ fun InfrastructureScreen(
                                 items(floors, key = { "floor_tab_${it.id}" }) { floor ->
                                     InfrastructureGridItem(
                                         item = InfrastructureItem.fromFloor(floor),
-                                        onEdit = { navController.navigate("edit_floor/${floor.id}") },
+                                        onEdit = { navController.navigate(Screens.Admin.EditFloor.route + "/" + floor.id) },
                                         onDelete = { showDeleteConfirmation = Pair("floor") { viewModel.deleteFloor(floor.id) } },
-                                        onViewDetails = { navController.navigate("details_floor/${floor.id}") }
+                                        onViewDetails = { navController.navigate(Screens.Admin.DetailsFloor.route + "/" + floor.id) }
                                     )
                                 }
                             }
@@ -278,9 +320,9 @@ fun InfrastructureScreen(
                                 items(filteredRooms, key = { "room_tab_${it.id}" }) { room ->
                                     InfrastructureGridItem(
                                         item = InfrastructureItem.fromRoom(room),
-                                        onEdit = { navController.navigate("edit_room/${room.id}") },
+                                        onEdit = { navController.navigate(Screens.Admin.EditRoom.route + "/" + room.id) },
                                         onDelete = { showDeleteConfirmation = Pair("room") { viewModel.deleteRoom(room.id) } },
-                                        onViewDetails = { navController.navigate("details_room/${room.id}") }
+                                        onViewDetails = { navController.navigate(Screens.Admin.DetailsRoom.route + "/" + room.id) }
                                     )
                                 }
                             }
@@ -306,9 +348,9 @@ fun InfrastructureScreen(
                         .padding(vertical = 8.dp)
                 ) {
                     val menuItems = listOf(
-                        FabMenuItemData(Icons.Default.Domain, "Add Block", "add_block"),
-                        FabMenuItemData(Icons.Default.Apartment, "Add Floor", "add_floor"),
-                        FabMenuItemData(Icons.Default.KingBed, "Add Room", "add_room")
+                        FabMenuItemData(Icons.Default.Domain, "Add Block", Screens.Admin.AddBlock.route),
+                        FabMenuItemData(Icons.Default.Apartment, "Add Floor", Screens.Admin.AddFloor.route),
+                        FabMenuItemData(Icons.Default.KingBed, "Add Room", Screens.Admin.AddRoom.route),
                     )
 
                     menuItems.forEach { item ->

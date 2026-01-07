@@ -1,12 +1,8 @@
-package com.techsavvy.tshostelmanagement.ui.admin.hostellers
+package com.techsavvy.tshostelmanagement.ui.admin.hostelers
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.techsavvy.tshostelmanagement.data.models.Block
-import com.techsavvy.tshostelmanagement.data.models.Floor
-import com.techsavvy.tshostelmanagement.data.models.HostellerRoom
-import com.techsavvy.tshostelmanagement.data.models.Room
-import com.techsavvy.tshostelmanagement.data.models.User
+import com.techsavvy.tshostelmanagement.data.models.*
 import com.techsavvy.tshostelmanagement.data.repositories.FirestoreRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,6 +16,7 @@ import javax.inject.Inject
 class AssignHostellerViewModel @Inject constructor(
     private val repository: FirestoreRepository
 ) : ViewModel() {
+
     private val _users = MutableStateFlow<List<User>>(emptyList())
     val users = _users.asStateFlow()
 
@@ -31,6 +28,9 @@ class AssignHostellerViewModel @Inject constructor(
 
     private val _rooms = MutableStateFlow<List<Room>>(emptyList())
     val rooms = _rooms.asStateFlow()
+
+    private val _assignSuccess = MutableStateFlow(false)
+    val assignSuccess = _assignSuccess.asStateFlow()
 
     init {
         fetchUsers()
@@ -55,12 +55,14 @@ class AssignHostellerViewModel @Inject constructor(
 
     fun assignHosteller(userId: String, roomId: String, notes: String) {
         viewModelScope.launch {
-            val assignment = HostellerRoom(
-                uid = userId,
-                roomId = roomId,
-                notes = notes
+            repository.assignHostellerRoom(
+                HostellerRoom(
+                    uid = userId,
+                    roomId = roomId,
+                    notes = notes
+                )
             )
-            repository.assignHostellerRoom(assignment)
+            _assignSuccess.value = true
         }
     }
 }

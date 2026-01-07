@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.techsavvy.tshostelmanagement.navigation.Screens
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -136,7 +137,7 @@ fun DetailsFloorScreen(
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
                     OutlinedButton(
-                        onClick = { navController.navigate("edit_floor/$floorId") },
+                        onClick = { navController.navigate(Screens.Admin.EditFloor.route + "/" + floorId) },
                         modifier = Modifier.weight(1f)
                     ) {
                         Icon(Icons.Default.Edit, contentDescription = "Edit")

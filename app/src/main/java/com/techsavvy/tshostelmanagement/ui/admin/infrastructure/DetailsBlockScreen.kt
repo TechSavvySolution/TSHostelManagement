@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.techsavvy.tshostelmanagement.navigation.Screens
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -205,12 +206,12 @@ fun DetailsBlockScreen(
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                        OutlinedButton(onClick = { navController.navigate("add_floor") }, modifier = Modifier.weight(1f)) {
+                        OutlinedButton(onClick = { navController.navigate("${Screens.Admin.AddFloor.route}")}, modifier = Modifier.weight(1f)) {
                             Icon(Icons.Default.Add, contentDescription = "Add Floor")
                             Spacer(modifier = Modifier.width(8.dp))
                             Text("Add Floor")
                         }
-                        OutlinedButton(onClick = { navController.navigate("add_room") }, modifier = Modifier.weight(1f)) {
+                        OutlinedButton(onClick = { navController.navigate("${Screens.Admin.AddRoom.route}") }, modifier = Modifier.weight(1f)) {
                             Icon(Icons.Default.Add, contentDescription = "Add Room")
                             Spacer(modifier = Modifier.width(8.dp))
                             Text("Add Room")
@@ -230,7 +231,7 @@ fun DetailsBlockScreen(
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
                     OutlinedButton(
-                        onClick = { navController.navigate("edit_block/$blockId") },
+                        onClick = { navController.navigate(Screens.Admin.EditBlock.route + "/" + blockId) },
                         modifier = Modifier.weight(1f)
                     ) {
                         Icon(Icons.Default.Edit, contentDescription = "Edit")

@@ -1,6 +1,5 @@
-package com.techsavvy.tshostelmanagement.ui.admin.hostellers
+package com.techsavvy.tshostelmanagement.ui.admin.hostelers
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -36,6 +35,14 @@ fun AssignHostellerScreen(
     var selectedRoom by remember { mutableStateOf<Room?>(null) }
     var notes by remember { mutableStateOf("") }
 
+    val assignSuccess by viewModel.assignSuccess.collectAsState(false)
+
+    LaunchedEffect(assignSuccess) {
+        if (assignSuccess) {
+            navController.popBackStack()
+        }
+    }
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         containerColor = Color(0xFF010413),
@@ -54,40 +61,66 @@ fun AssignHostellerScreen(
                 .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
+
             Text(
                 text = "Assign a Hosteller to a Room",
                 color = Color.White,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold
             )
+
             Spacer(modifier = Modifier.height(24.dp))
 
             // User Dropdown
-            Dropdown(label = "Select User", items = users, selectedItem = selectedUser, onItemSelected = { selectedUser = it }) { it.name }
+            Dropdown(
+                label = "Select User",
+                items = users,
+                selectedItem = selectedUser,
+                onItemSelected = { selectedUser = it }
+            ) { it.name }
 
             Spacer(modifier = Modifier.height(16.dp))
 
             // Block Dropdown
-            Dropdown(label = "Select Block", items = blocks, selectedItem = selectedBlock, onItemSelected = {
-                selectedBlock = it
-                selectedFloor = null // Reset floor and room when block changes
-                selectedRoom = null
-                if (it != null) viewModel.fetchFloors(it.id)
-            }) { it.name }
+            Dropdown(
+                label = "Select Block",
+                items = blocks,
+                selectedItem = selectedBlock,
+                onItemSelected = {
+                    selectedBlock = it
+                    selectedFloor = null
+                    selectedRoom = null
+                    if (it != null) viewModel.fetchFloors(it.id)
+                }
+            ) { it.name }
 
             Spacer(modifier = Modifier.height(16.dp))
 
             // Floor Dropdown
-            Dropdown(label = "Select Floor", items = floors, selectedItem = selectedFloor, onItemSelected = {
-                selectedFloor = it
-                selectedRoom = null // Reset room when floor changes
-                if (it != null) viewModel.fetchRooms(it.id)
-            }, enabled = selectedBlock != null) { it.name }
+            Dropdown(
+                label = "Select Floor",
+                items = floors,
+                selectedItem = selectedFloor,
+                onItemSelected = {
+                    selectedFloor = it
+                    selectedRoom = null
+                    if (it != null) viewModel.fetchRooms(it.id)
+                },
+                enabled = selectedBlock != null
+            ) { it.name }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Room Dropdown
-            Dropdown(label = "Select Room", items = rooms, selectedItem = selectedRoom, onItemSelected = { selectedRoom = it }, enabled = selectedFloor != null) { it.name }
+            // ✅ FIXED ROOM DISPLAY: Shows "RoomNumber - RoomName"
+            Dropdown(
+                label = "Select Room",
+                items = rooms,
+                selectedItem = selectedRoom,
+                onItemSelected = { selectedRoom = it },
+                enabled = selectedFloor != null
+            ) { room ->
+                if (room.name.isNotBlank()) "${room.roomNumber} - ${room.name}" else "${room.roomNumber}"
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -111,8 +144,11 @@ fun AssignHostellerScreen(
             Button(
                 onClick = {
                     if (selectedUser != null && selectedRoom != null) {
-                        viewModel.assignHosteller(selectedUser!!.uid, selectedRoom!!.id, notes)
-                        navController.popBackStack()
+                        viewModel.assignHosteller(
+                            selectedUser!!.uid,
+                            selectedRoom!!.id,
+                            notes
+                        )
                     }
                 },
                 modifier = Modifier
@@ -122,8 +158,9 @@ fun AssignHostellerScreen(
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4ADE80)),
                 enabled = selectedUser != null && selectedRoom != null
             ) {
-                Text(text = "Assign Hosteller", fontSize = 18.sp, color= Color.Black)
+                Text("Assign Hosteller", fontSize = 18.sp, color = Color.Black)
             }
+
             Spacer(modifier = Modifier.height(16.dp))
         }
     }
@@ -141,38 +178,37 @@ private fun <T> Dropdown(
 ) {
     var expanded by remember { mutableStateOf(false) }
 
-    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { if(enabled) expanded = it }) {
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { if (enabled) expanded = it }
+    ) {
         OutlinedTextField(
             readOnly = true,
             value = selectedItem?.let(itemToString) ?: "",
             onValueChange = {},
             label = { Text(label, color = Color.LightGray) },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .menuAnchor(),
+            trailingIcon = {
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded)
+            },
+            modifier = Modifier.fillMaxWidth().menuAnchor(),
             shape = RoundedCornerShape(12.dp),
+            enabled = enabled,
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White,
-                disabledTextColor = Color.Gray.copy(alpha = 0.7f),
                 cursorColor = Color.White,
                 focusedBorderColor = Color(0xFF4ADE80),
-                unfocusedBorderColor = Color.Gray,
-                disabledBorderColor = Color.DarkGray,
-                focusedTrailingIconColor = Color.LightGray,
-                unfocusedTrailingIconColor = Color.LightGray
-            ),
-            enabled = enabled
+                unfocusedBorderColor = Color.Gray
+            )
         )
+
         ExposedDropdownMenu(
             expanded = expanded,
-            onDismissRequest = { expanded = false },
-            modifier = Modifier.background(Color(0xFF0F172A))
+            onDismissRequest = { expanded = false }
         ) {
             items.forEach { item ->
                 DropdownMenuItem(
-                    text = { Text(itemToString(item), color = Color.White) },
+                    text = { Text(itemToString(item)) },
                     onClick = {
                         onItemSelected(item)
                         expanded = false
