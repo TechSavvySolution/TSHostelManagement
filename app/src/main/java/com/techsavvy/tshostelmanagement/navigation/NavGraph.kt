@@ -141,22 +141,22 @@ fun NavGraphBuilder.adminGraph(navController: NavController) {
         composable(Screens.Admin.Profile.route) { ProfileScreen() }
         composable(Screens.Admin.Settings.route) { SettingsScreen(navController) }
 
-        composable("register_user") {
+        composable("Screens.Auth.RegisterUser.route") {
             RegisterUserScreen(navController)
         }
         composable(
-            route = "assign_hosteller_screen/{uid}",
+            route = "Screens.Admin.AssignHosteller.route/{uid}",
             arguments = listOf(navArgument("uid") { type = NavType.StringType })
         ) { backStackEntry ->
             val uid = backStackEntry.arguments?.getString("uid") ?: ""
             AssignHostellerScreen(navController = navController,viewModel= hiltViewModel())
         }
         
-        composable("add_user"){
+        composable("Screens.Admin.AddUser.route"){
             AddUserScreen(navController)
         }
 
-        composable("assign_hosteller"){
+        composable("Screens.Admin.AssignHosteller.route"){
             AdminAssignHostellerScreen(navController)
         }
     }

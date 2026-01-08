@@ -80,14 +80,14 @@ fun HostellersScreen(
                         text = { Text("Add User", color = Color.White) },
                         onClick = {
                             showMenu = false
-                            navController.navigate("add_user")
+                            navController.navigate("Screens.Admin.AddUser.route")
                         }
                     )
                     DropdownMenuItem(
                         text = { Text("Assign Hosteller", color = Color.White) },
                         onClick = {
                             showMenu = false
-                            navController.navigate("assign_hosteller")
+                            navController.navigate("Screens.Admin.AssignHosteller.route")
                         }
                     )
                 }
