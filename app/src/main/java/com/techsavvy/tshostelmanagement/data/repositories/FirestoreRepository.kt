@@ -8,6 +8,7 @@ import com.techsavvy.tshostelmanagement.data.models.Block
 import com.techsavvy.tshostelmanagement.data.models.Floor
 import com.techsavvy.tshostelmanagement.data.models.HostellerRoom
 import com.techsavvy.tshostelmanagement.data.models.Room
+import com.techsavvy.tshostelmanagement.data.models.StaffTask
 import com.techsavvy.tshostelmanagement.data.models.User
 import com.techsavvy.tshostelmanagement.data.utils.Role
 import kotlinx.coroutines.channels.awaitClose
@@ -132,6 +133,22 @@ class FirestoreRepository @Inject constructor(private val firestore: FirebaseFir
         awaitClose { listener.remove() }
     }
 
+    fun getStaff(): Flow<List<User>> = callbackFlow {
+        val listener = firestore.collection("users")
+            .whereEqualTo("role", Role.STAFF)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+                snapshot?.let { trySend(it.toObjects()) }
+            }
+        awaitClose { listener.remove() }
+    }
+
+    fun assignStaffTask(task: StaffTask) {
+        firestore.collection("staff_tasks").add(task)
+    }
     fun getRooms(floorId: String): Flow<List<Room>> = callbackFlow {
         val listener = firestore.collection("rooms").whereEqualTo("floorId", floorId)
             .addSnapshotListener { snapshot, error ->

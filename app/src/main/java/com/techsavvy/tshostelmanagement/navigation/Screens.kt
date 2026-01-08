@@ -7,7 +7,6 @@ sealed class Screens(val route: String, val title: String = "") {
         object Home : Screens("admin_home", "Admin Home")
         object Infrastructure : Screens("admin_infrastructure", "Infrastructure")
         object Hostellers : Screens("admin_hostellers", "Hostellers")
-        object Staff : Screens("admin_staff", "Staff")
         object Complaints : Screens("admin_complaints", "Complaints")
         object Fees : Screens("admin_fees", "Fees")
         object Reports : Screens("admin_reports", "Reports")
@@ -37,6 +36,10 @@ sealed class Screens(val route: String, val title: String = "") {
         }
         object AssignHosteller : Screens("admin_assign_hosteller", "Assign Hosteller")
         object AddUser : Screens("admin_add_user", "Add User")
+
+        object Staff : Screens("admin_staff", "Staff")
+        object AddStaff : Screens("admin_add_staff", "Add Staff") // Optional alias for clarity
+        object AssignTask : Screens("admin_assign_task", "Assign Task")
     }
 
     object Auth {
