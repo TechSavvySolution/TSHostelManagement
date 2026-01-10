@@ -61,10 +61,11 @@ fun StaffScreen(
                     modifier = Modifier.background(Color(0xFF0F172A))
                 ) {
                     DropdownMenuItem(
-                        text = { Text("Add User", color = Color.White) },
+                        text = { Text("Add Staff", color = Color.White) },
                         onClick = {
                             showMenu = false
-                            navController.navigate(Screens.Admin.AddUser.route)
+                            // Navigating to Add Staff screen using centralized route
+                            navController.navigate(Screens.Admin.AddStaff.route)
                         }
                     )
                     DropdownMenuItem(

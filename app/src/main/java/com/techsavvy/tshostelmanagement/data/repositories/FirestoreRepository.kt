@@ -4,25 +4,22 @@ import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.toObject
 import com.google.firebase.firestore.toObjects
-import com.techsavvy.tshostelmanagement.data.models.Block
-import com.techsavvy.tshostelmanagement.data.models.Floor
-import com.techsavvy.tshostelmanagement.data.models.HostellerRoom
-import com.techsavvy.tshostelmanagement.data.models.Room
-import com.techsavvy.tshostelmanagement.data.models.StaffTask
-import com.techsavvy.tshostelmanagement.data.models.User
+import com.techsavvy.tshostelmanagement.data.models.*
 import com.techsavvy.tshostelmanagement.data.utils.Role
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.tasks.await // Added for suspension support
 import javax.inject.Inject
 
 class FirestoreRepository @Inject constructor(private val firestore: FirebaseFirestore) {
 
-    fun saveUser(user: User) {
+    // Updated to suspend and added .await() to prevent race conditions
+    suspend fun saveUser(user: User) {
         firestore.collection("users")
             .document(user.uid)
             .set(user)
+            .await()
     }
 
     suspend fun getUser(uid: String): User? {
@@ -57,52 +54,43 @@ class FirestoreRepository @Inject constructor(private val firestore: FirebaseFir
         var listener = firestore.collection("users")
             .whereEqualTo("role", Role.HOSTELER)
 
-        //users = 100
-        //hosteler_room = 50
-        //100 * 50 = 500
-        //use index instead
-
         if(assignedUsers.isNotEmpty()) {
             listener = listener.whereNotIn("uid", assignedUsers.map { it.uid })
         }
 
         val result = listener.addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    close(error)
-                    return@addSnapshotListener
-                }
-                snapshot?.let {
-                    trySend(it.toObjects())
-                }
+            if (error != null) {
+                close(error)
+                return@addSnapshotListener
             }
+            snapshot?.let {
+                trySend(it.toObjects())
+            }
+        }
 
         awaitClose {
             result.remove()
         }
     }
+
     fun getAssignedUsers(): Flow<List<User>> = callbackFlow {
         val assignedUsers = firestore.collection("hosteller_room").get().await().toObjects<HostellerRoom>();
         var listener = firestore.collection("users")
             .whereEqualTo("role", Role.HOSTELER)
-
-        //users = 100
-        //hosteler_room = 50
-        //100 * 50 = 500
-        //use index instead
 
         if(assignedUsers.isNotEmpty()) {
             listener = listener.whereIn("uid", assignedUsers.map { it.uid })
         }
 
         val result = listener.addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    close(error)
-                    return@addSnapshotListener
-                }
-                snapshot?.let {
-                    trySend(it.toObjects())
-                }
+            if (error != null) {
+                close(error)
+                return@addSnapshotListener
             }
+            snapshot?.let {
+                trySend(it.toObjects())
+            }
+        }
 
         awaitClose {
             result.remove()
@@ -149,6 +137,7 @@ class FirestoreRepository @Inject constructor(private val firestore: FirebaseFir
     fun assignStaffTask(task: StaffTask) {
         firestore.collection("staff_tasks").add(task)
     }
+
     fun getRooms(floorId: String): Flow<List<Room>> = callbackFlow {
         val listener = firestore.collection("rooms").whereEqualTo("floorId", floorId)
             .addSnapshotListener { snapshot, error ->

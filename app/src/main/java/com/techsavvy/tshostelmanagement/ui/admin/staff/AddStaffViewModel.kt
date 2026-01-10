@@ -27,23 +27,30 @@ class AddStaffViewModel @Inject constructor(
         viewModelScope.launch {
             _authState.value = AuthState.Loading
             try {
+                // 1. Create Auth Account
                 val result = auth.createUserWithEmailAndPassword(email, password).await()
                 val firebaseUser = result.user
-                firebaseUser?.let {
+
+                if (firebaseUser != null) {
                     val user = User(
-                        uid = it.uid,
+                        uid = firebaseUser.uid,
                         name = username,
                         email = email,
                         pass = password,
                         phone = phone,
-                        role = Role.STAFF, // Specifically setting STAFF role
+                        role = Role.STAFF,
                         active = true
                     )
+                    // 2. Wait for Firestore to save before updating state
                     repository.saveUser(user)
+
+                    // 3. Success
                     _authState.value = AuthState.Authenticated(user)
+                } else {
+                    _authState.value = AuthState.Error("User creation failed.")
                 }
             } catch (e: Exception) {
-                _authState.value = AuthState.Error(e.message ?: "Registration failed.")
+                _authState.value = AuthState.Error(e.localizedMessage ?: "Registration failed.")
             }
         }
     }
