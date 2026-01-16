@@ -28,6 +28,7 @@ import com.techsavvy.tshostelmanagement.ui.auth.LoginScreen
 import com.techsavvy.tshostelmanagement.ui.auth.RegisterUserScreen
 import com.techsavvy.tshostelmanagement.ui.admin.infrastructure.InfrastructureViewModel
 import com.techsavvy.tshostelmanagement.ui.admin.staff.AddStaffScreen
+import com.techsavvy.tshostelmanagement.ui.hosteler.home.HostelerHomeScreen
 
 @Composable
 fun NavGraph(navController: NavHostController) {
@@ -39,7 +40,12 @@ fun NavGraph(navController: NavHostController) {
             val authViewModel: AuthViewModel = hiltViewModel()
             LoginScreen(navController = navController, viewModel = authViewModel)
         }
+
+        // Admin Module Graph
         adminGraph(navController)
+
+        // Hosteler Module Graph
+        hostelerGraph(navController)
     }
 }
 
@@ -101,6 +107,15 @@ fun NavGraphBuilder.adminGraph(navController: NavController) {
         }
         composable("${Screens.Admin.DetailsRoom.route}/{roomId}") { backStackEntry ->
             DetailsRoomScreen(navController, backStackEntry.arguments?.getString("roomId"))
+        }
+    }
+}
+
+// New Hosteler Navigation Graph
+fun NavGraphBuilder.hostelerGraph(navController: NavController) {
+    navigation(startDestination = Screens.Hosteler.Home.route, route = "hosteler_graph") {
+        composable(Screens.Hosteler.Home.route) {
+            HostelerHomeScreen(navController = navController)
         }
     }
 }

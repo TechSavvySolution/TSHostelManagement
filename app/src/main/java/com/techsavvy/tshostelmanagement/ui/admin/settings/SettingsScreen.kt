@@ -1,48 +1,20 @@
 package com.techsavvy.tshostelmanagement.ui.admin.settings
 
-import androidx.compose.animation.core.InfiniteRepeatableSpec
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.automirrored.rounded.Logout
-import androidx.compose.material.icons.rounded.AccountCircle
-import androidx.compose.material.icons.rounded.Notifications
-import androidx.compose.material.icons.rounded.Palette
-import androidx.compose.material.icons.rounded.Security
-import androidx.compose.material.icons.rounded.WbSunny
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.rounded.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -53,11 +25,15 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel // Import added
 import androidx.navigation.NavController
 import com.techsavvy.tshostelmanagement.navigation.Screens
 
 @Composable
-fun SettingsScreen(navController: NavController) {
+fun SettingsScreen(
+    navController: NavController,
+    viewModel: SettingsViewModel = hiltViewModel() // Inject ViewModel
+) {
     var isDarkMode by remember { mutableStateOf(false) }
 
     Box(
@@ -157,16 +133,23 @@ fun SettingsScreen(navController: NavController) {
                         }
                     )
                     HorizontalDivider(color = Color.White.copy(alpha = 0.1f), thickness = 1.dp, modifier = Modifier.padding(horizontal = 16.dp))
+
+                    // --- LOGOUT LOGIC ---
                     SettingItem(
                         icon = Icons.AutoMirrored.Rounded.Logout,
                         title = "Logout",
                         isDestructive = true,
                         onClick = {
+                            // 1. Perform Firebase Sign out
+                            viewModel.logout()
+
+                            // 2. Navigate to Login and clear backstack
                             navController.navigate(Screens.Login.route) {
-                                popUpTo(Screens.Admin.Home.route) { inclusive = true }
+                                popUpTo(0) { inclusive = true }
                             }
                         }
                     )
+                    // --------------------
                 }
             }
             item { Spacer(modifier = Modifier.height(24.dp)) }
@@ -174,6 +157,8 @@ fun SettingsScreen(navController: NavController) {
     }
 }
 
+// ... Rest of your Composables (GridBackground, ProfileHeader, GlassmorphicCard, etc.) remain unchanged ...
+// Paste the rest of your original SettingsScreen.kt helper composables here to keep the file complete.
 @Composable
 fun GridBackground() {
     val infiniteTransition = rememberInfiniteTransition(label = "grid-bg")
