@@ -11,7 +11,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.navigation
-import com.techsavvy.tshostelmanagement.ui.admin.complaints.ComplaintsScreen
+import com.techsavvy.tshostelmanagement.ui.admin.complaints.AdminComplaintScreen
 import com.techsavvy.tshostelmanagement.ui.admin.fees.FeesScreen
 import com.techsavvy.tshostelmanagement.ui.admin.home.AdminHomeScreen
 import com.techsavvy.tshostelmanagement.ui.admin.hostelers.AddUserScreen
@@ -28,6 +28,8 @@ import com.techsavvy.tshostelmanagement.ui.auth.LoginScreen
 import com.techsavvy.tshostelmanagement.ui.auth.RegisterUserScreen
 import com.techsavvy.tshostelmanagement.ui.admin.infrastructure.InfrastructureViewModel
 import com.techsavvy.tshostelmanagement.ui.admin.staff.AddStaffScreen
+import com.techsavvy.tshostelmanagement.ui.hosteler.HostelerComplaintsScreen
+import com.techsavvy.tshostelmanagement.ui.hosteler.RaiseComplaintScreen
 import com.techsavvy.tshostelmanagement.ui.hosteler.home.HostelerHomeScreen
 
 @Composable
@@ -90,8 +92,8 @@ fun NavGraphBuilder.adminGraph(navController: NavController) {
             AssignHostellerScreen(navController = navController)
         }
 
-        // --- Other Screens ---
-        composable(Screens.Admin.Complaints.route) { ComplaintsScreen() }
+        // --- Other Screens (Fixed missing navController parameters) ---
+        composable(Screens.Admin.Complaints.route) { AdminComplaintScreen(navController) }
         composable(Screens.Admin.Fees.route) { FeesScreen() }
         composable(Screens.Admin.Reports.route) { ReportsScreen() }
         composable(Screens.Admin.Profile.route) { ProfileScreen() }
@@ -111,11 +113,19 @@ fun NavGraphBuilder.adminGraph(navController: NavController) {
     }
 }
 
-// New Hosteler Navigation Graph
+// Fixed Hosteler Navigation Graph
 fun NavGraphBuilder.hostelerGraph(navController: NavController) {
     navigation(startDestination = Screens.Hosteler.Home.route, route = "hosteler_graph") {
         composable(Screens.Hosteler.Home.route) {
             HostelerHomeScreen(navController = navController)
+        }
+
+        composable(Screens.Hosteler.Complaints.route) {
+            HostelerComplaintsScreen(navController)
+        }
+
+        composable(Screens.Hosteler.RaiseComplaint.route) {
+            RaiseComplaintScreen(navController)
         }
     }
 }

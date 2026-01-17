@@ -41,7 +41,10 @@ fun HostelerHomeScreen(
         topBar = {
             HostelerTopBar(
                 userName = user?.name ?: "Hosteler",
-                onProfileClick = { /* TODO: Navigate to Profile */ }
+                onProfileClick = {
+                    // Navigates to profile if screen exists in your central nav
+                    // navController.navigate(Screens.Hosteler.Profile.route)
+                }
             )
         }
     ) { paddingValues ->
@@ -54,17 +57,15 @@ fun HostelerHomeScreen(
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
-            // --- SECTION 1: Dashboard / Status ---
-            Text(
-                text = "Overview",
-                color = Color.White,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
-            )
+            // --- OVERVIEW SECTION ---
+            SectionHeader(title = "Overview")
+
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Date & Fees Row
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
                 InfoCard(
                     title = "Today",
                     value = viewModel.currentDate,
@@ -83,67 +84,41 @@ fun HostelerHomeScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Mess Menu Card
             MessMenuCard(menu = viewModel.messMenu)
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // --- SECTION 2: Announcements ---
+            // --- ANNOUNCEMENTS ---
             AnnouncementButton(
-                onClick = { /* TODO: Navigate to Announcements */ }
+                onClick = { /* navController.navigate(Screens.Hosteler.Announcements.route) */ }
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // --- SECTION 3: Complaints UI ---
-            Text(
-                text = "Complaints",
-                color = Color.White,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
-            )
+            // --- COMPLAINTS SECTION ---
+            SectionHeader(title = "Complaints")
+
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Complaint Actions/Preview
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(24.dp))
-                    .background(Color.White.copy(alpha = 0.05f))
-                    .padding(20.dp)
-            ) {
-                // Placeholder for recent complaint
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Rounded.CheckCircle,
-                        contentDescription = null,
-                        tint = Color.Gray,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Column {
-                        Text("No active complaints", color = Color.White.copy(alpha = 0.7f), fontWeight = FontWeight.SemiBold)
-                        Text("Everything looks good!", color = Color.Gray, fontSize = 12.sp)
-                    }
+            ComplaintPreviewCard(
+                onActionClick = {
+                    navController.navigate(Screens.Hosteler.Complaints.route)
                 }
+            )
 
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Button(
-                    onClick = { /* TODO: Open Complaint Form */ },
-                    modifier = Modifier.fillMaxWidth().height(50.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF87171))
-                ) {
-                    Icon(Icons.Rounded.Add, contentDescription = null, tint = Color.Black)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Raise New Complaint", color = Color.Black, fontWeight = FontWeight.Bold)
-                }
-            }
-
-            Spacer(modifier = Modifier.height(100.dp)) // Bottom spacing
+            Spacer(modifier = Modifier.height(100.dp))
         }
     }
+}
+
+@Composable
+fun SectionHeader(title: String) {
+    Text(
+        text = title,
+        color = Color.White,
+        fontSize = 20.sp,
+        fontWeight = FontWeight.Bold
+    )
 }
 
 @Composable
@@ -160,7 +135,6 @@ fun HostelerTopBar(userName: String, onProfileClick: () -> Unit) {
             Text(text = userName, color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
         }
 
-        // Profile Icon
         Box(
             modifier = Modifier
                 .size(48.dp)
@@ -209,26 +183,26 @@ fun MessMenuCard(menu: Map<String, String>) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        menu.forEach { (time, food) ->
+        menu.entries.forEachIndexed { index, entry ->
             Row(
                 modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
                 verticalAlignment = Alignment.Top
             ) {
                 Text(
-                    text = time,
+                    text = entry.key,
                     color = Color.White.copy(alpha = 0.7f),
                     fontSize = 14.sp,
                     modifier = Modifier.width(80.dp),
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
-                    text = food,
+                    text = entry.value,
                     color = Color.White,
                     fontSize = 14.sp,
                     modifier = Modifier.weight(1f)
                 )
             }
-            if (time != "Dinner") {
+            if (index < menu.size - 1) {
                 HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
             }
         }
@@ -236,15 +210,50 @@ fun MessMenuCard(menu: Map<String, String>) {
 }
 
 @Composable
-fun AnnouncementButton(onClick: () -> Unit) {
-    Button(
-        onClick = onClick,
+fun ComplaintPreviewCard(onActionClick: () -> Unit) {
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .height(80.dp),
+            .clip(RoundedCornerShape(24.dp))
+            .background(Color.White.copy(alpha = 0.05f))
+            .padding(20.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                Icons.Rounded.CheckCircle,
+                contentDescription = null,
+                tint = Color.Gray,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.width(16.dp))
+            Column {
+                Text("No active complaints", color = Color.White.copy(alpha = 0.7f), fontWeight = FontWeight.SemiBold)
+                Text("Everything looks good!", color = Color.Gray, fontSize = 12.sp)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Button(
+            onClick = onActionClick,
+            modifier = Modifier.fillMaxWidth().height(50.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF87171))
+        ) {
+            Icon(Icons.Rounded.Add, contentDescription = null, tint = Color.Black)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Raise New Complaint", color = Color.Black, fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+@Composable
+fun AnnouncementButton(onClick: () -> Unit) {
+    Surface(
+        onClick = onClick,
         shape = RoundedCornerShape(24.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-        contentPadding = PaddingValues(0.dp)
+        color = Color.Transparent,
+        modifier = Modifier.fillMaxWidth().height(80.dp)
     ) {
         Box(
             modifier = Modifier

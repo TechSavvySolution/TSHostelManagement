@@ -23,11 +23,12 @@ class HostelerViewModel @Inject constructor(
     private val _currentUser = MutableStateFlow<User?>(null)
     val currentUser = _currentUser.asStateFlow()
 
-    // Mock Data for Dashboard
+    // Dashboard Properties
     val currentDate: String = SimpleDateFormat("dd MMM, yyyy", Locale.getDefault()).format(Date())
-    val feesStatus = "Paid" // Mock status: Paid, Pending, Overdue
 
-    // Mock Mess Menu
+    // In a real app, these could be fetched from repository
+    val feesStatus = "Paid"
+
     val messMenu = mapOf(
         "Breakfast" to "Aloo Paratha & Curd",
         "Lunch" to "Rice, Dal, Mixed Veg, Chapati",
@@ -42,8 +43,12 @@ class HostelerViewModel @Inject constructor(
         val uid = auth.currentUser?.uid
         if (uid != null) {
             viewModelScope.launch {
-                val user = repository.getUser(uid)
-                _currentUser.value = user
+                try {
+                    val user = repository.getUser(uid)
+                    _currentUser.value = user
+                } catch (e: Exception) {
+                    // Handle error if needed
+                }
             }
         }
     }
