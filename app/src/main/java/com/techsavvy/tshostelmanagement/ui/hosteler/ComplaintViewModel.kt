@@ -52,4 +52,11 @@ class ComplaintViewModel @Inject constructor(
             repository.saveComplaint(complaint)
         }
     }
+
+    // Added Delete Functionality
+    fun deleteComplaint(complaintId: String) {
+        viewModelScope.launch {
+            repository.deleteComplaint(complaintId)
+        }
+    }
 }

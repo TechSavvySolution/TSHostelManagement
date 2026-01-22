@@ -26,11 +26,19 @@ import com.techsavvy.tshostelmanagement.ui.admin.staff.AssignTaskScreen
 import com.techsavvy.tshostelmanagement.ui.auth.AuthViewModel
 import com.techsavvy.tshostelmanagement.ui.auth.LoginScreen
 import com.techsavvy.tshostelmanagement.ui.auth.RegisterUserScreen
-import com.techsavvy.tshostelmanagement.ui.admin.infrastructure.InfrastructureViewModel
 import com.techsavvy.tshostelmanagement.ui.admin.staff.AddStaffScreen
 import com.techsavvy.tshostelmanagement.ui.hosteler.HostelerComplaintsScreen
+import com.techsavvy.tshostelmanagement.ui.hosteler.HostelerSettingsScreen
 import com.techsavvy.tshostelmanagement.ui.hosteler.RaiseComplaintScreen
 import com.techsavvy.tshostelmanagement.ui.hosteler.home.HostelerHomeScreen
+import com.techsavvy.tshostelmanagement.ui.hosteler.profile.HostelerProfileScreen
+
+// STAFF MODULE IMPORTS
+import com.techsavvy.tshostelmanagement.ui.staff.home.HomeScreen
+import com.techsavvy.tshostelmanagement.ui.staff.complaints.StaffComplaintsScreen
+import com.techsavvy.tshostelmanagement.ui.staff.complaints.StaffComplaintDetailsScreen
+import com.techsavvy.tshostelmanagement.ui.staff.profile.StaffProfileScreen
+import com.techsavvy.tshostelmanagement.ui.staff.settings.StaffSettingsScreen // Added Import
 
 @Composable
 fun NavGraph(navController: NavHostController) {
@@ -42,20 +50,15 @@ fun NavGraph(navController: NavHostController) {
             val authViewModel: AuthViewModel = hiltViewModel()
             LoginScreen(navController = navController, viewModel = authViewModel)
         }
-
-        // Admin Module Graph
         adminGraph(navController)
-
-        // Hosteler Module Graph
         hostelerGraph(navController)
+        staffGraph(navController)
     }
 }
 
 fun NavGraphBuilder.adminGraph(navController: NavController) {
     navigation(startDestination = Screens.Admin.Home.route, route = "admin_graph") {
         composable(Screens.Admin.Home.route) { AdminHomeScreen(navController) }
-
-        // --- Infrastructure Module ---
         composable(Screens.Admin.Infrastructure.route) { backStackEntry ->
             val parentEntry = remember(backStackEntry) { navController.getBackStackEntry("admin_graph") }
             InfrastructureScreen(navController, hiltViewModel(parentEntry))
@@ -72,35 +75,24 @@ fun NavGraphBuilder.adminGraph(navController: NavController) {
             val parentEntry = remember(backStackEntry) { navController.getBackStackEntry("admin_graph") }
             AddRoomScreen(navController, hiltViewModel(parentEntry))
         }
-
-        // --- Staff Module ---
         composable(Screens.Admin.Staff.route) { StaffScreen(navController) }
         composable(Screens.Admin.AssignTask.route) { AssignTaskScreen(navController) }
-        composable(Screens.Admin.AddStaff.route) {
-            AddStaffScreen(navController = navController)
-        }
-
-        // --- Hostellers Module ---
+        composable(Screens.Admin.AddStaff.route) { AddStaffScreen(navController = navController) }
         composable(Screens.Admin.Hostellers.route) { HostellersScreen(navController) }
         composable(Screens.Admin.AddUser.route) { AddUserScreen(navController) }
         composable(Screens.Admin.AssignHosteller.route) { AssignHostellerScreen(navController) }
-
         composable(
             route = "${Screens.Admin.AssignHosteller.route}/{uid}",
             arguments = listOf(navArgument("uid") { type = NavType.StringType })
         ) {
             AssignHostellerScreen(navController = navController)
         }
-
-        // --- Other Screens (Fixed missing navController parameters) ---
         composable(Screens.Admin.Complaints.route) { AdminComplaintScreen(navController) }
         composable(Screens.Admin.Fees.route) { FeesScreen() }
         composable(Screens.Admin.Reports.route) { ReportsScreen() }
         composable(Screens.Admin.Profile.route) { ProfileScreen() }
         composable(Screens.Admin.Settings.route) { SettingsScreen(navController) }
         composable(Screens.Auth.RegisterUser.route) { RegisterUserScreen(navController) }
-
-        // --- Detail/Edit Routes ---
         composable("${Screens.Admin.DetailsBlock.route}/{blockId}") { backStackEntry ->
             DetailsBlockScreen(navController, backStackEntry.arguments?.getString("blockId"))
         }
@@ -113,19 +105,51 @@ fun NavGraphBuilder.adminGraph(navController: NavController) {
     }
 }
 
-// Fixed Hosteler Navigation Graph
 fun NavGraphBuilder.hostelerGraph(navController: NavController) {
     navigation(startDestination = Screens.Hosteler.Home.route, route = "hosteler_graph") {
         composable(Screens.Hosteler.Home.route) {
             HostelerHomeScreen(navController = navController)
         }
-
         composable(Screens.Hosteler.Complaints.route) {
             HostelerComplaintsScreen(navController)
         }
-
         composable(Screens.Hosteler.RaiseComplaint.route) {
             RaiseComplaintScreen(navController)
+        }
+        composable(Screens.Hosteler.Profile.route) {
+            HostelerProfileScreen(navController = navController)
+        }
+        composable(Screens.Hosteler.Settings.route) {
+            HostelerSettingsScreen(navController)
+        }
+    }
+}
+
+fun NavGraphBuilder.staffGraph(navController: NavController) {
+    navigation(startDestination = Screens.Staff.Home.route, route = "staff_graph") {
+        composable(Screens.Staff.Home.route) {
+            HomeScreen(navController = navController)
+        }
+        composable(Screens.Staff.Complaints.route) {
+            StaffComplaintsScreen(navController)
+        }
+        composable(
+            route = "${Screens.Staff.ComplaintDetails.route}/{complaintId}",
+            arguments = listOf(navArgument("complaintId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val complaintId = backStackEntry.arguments?.getString("complaintId")
+            StaffComplaintDetailsScreen(navController, complaintId)
+        }
+        composable(Screens.Staff.Profile.route) {
+            StaffProfileScreen(navController = navController)
+        }
+        // Added Settings Destination
+        composable(Screens.Staff.Settings.route) {
+            StaffSettingsScreen(navController = navController)
+        }
+        composable("${Screens.Staff.Chat.route}/{hostelerId}") { backStackEntry ->
+            val hostelerId = backStackEntry.arguments?.getString("hostelerId")
+            // Placeholder for StaffChatScreen
         }
     }
 }

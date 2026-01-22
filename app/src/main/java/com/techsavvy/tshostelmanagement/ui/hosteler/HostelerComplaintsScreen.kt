@@ -8,10 +8,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.rounded.Delete // Added for delete icon
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -30,6 +29,9 @@ fun HostelerComplaintsScreen(
     viewModel: ComplaintViewModel = hiltViewModel()
 ) {
     val complaints by viewModel.complaints.collectAsState()
+
+    // State to handle deletion confirmation
+    var complaintToDelete by remember { mutableStateOf<Complaint?>(null) }
 
     Scaffold(
         containerColor = Color(0xFF010413),
@@ -53,6 +55,32 @@ fun HostelerComplaintsScreen(
             }
         }
     ) { paddingValues ->
+
+        // Deletion Confirmation Dialog
+        if (complaintToDelete != null) {
+            AlertDialog(
+                onDismissRequest = { complaintToDelete = null },
+                containerColor = Color(0xFF0F172A),
+                title = { Text("Delete Complaint", color = Color.White) },
+                text = { Text("Are you sure you want to delete this complaint? This action cannot be undone.", color = Color.Gray) },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            viewModel.deleteComplaint(complaintToDelete!!.id)
+                            complaintToDelete = null
+                        }
+                    ) {
+                        Text("Delete", color = Color(0xFFF87171))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { complaintToDelete = null }) {
+                        Text("Cancel", color = Color.White)
+                    }
+                }
+            )
+        }
+
         if (complaints.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
                 Text("Not any Complaints yet", color = Color.Gray, fontSize = 18.sp)
@@ -60,7 +88,10 @@ fun HostelerComplaintsScreen(
         } else {
             LazyColumn(modifier = Modifier.padding(paddingValues).fillMaxSize().padding(16.dp)) {
                 items(complaints) { complaint ->
-                    ComplaintItem(complaint)
+                    ComplaintItem(
+                        complaint = complaint,
+                        onDeleteClick = { complaintToDelete = complaint }
+                    )
                     Spacer(modifier = Modifier.height(12.dp))
                 }
             }
@@ -69,7 +100,7 @@ fun HostelerComplaintsScreen(
 }
 
 @Composable
-fun ComplaintItem(complaint: Complaint) {
+fun ComplaintItem(complaint: Complaint, onDeleteClick: () -> Unit) {
     Card(
         colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.05f)),
         shape = RoundedCornerShape(16.dp)
@@ -77,11 +108,26 @@ fun ComplaintItem(complaint: Complaint) {
         Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text(text = complaint.subject, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                Text(
-                    text = complaint.status,
-                    color = if (complaint.status == "Resolved") Color(0xFF4ADE80) else Color(0xFFFACC15),
-                    fontSize = 12.sp
-                )
+
+                // Row to hold status and delete icon
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = complaint.status,
+                        color = if (complaint.status == "Resolved") Color(0xFF4ADE80) else Color(0xFFFACC15),
+                        fontSize = 12.sp
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    IconButton(
+                        onClick = onDeleteClick,
+                        modifier = Modifier.size(24.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Delete,
+                            contentDescription = "Delete",
+                            tint = Color(0xFFF87171).copy(alpha = 0.7f)
+                        )
+                    }
+                }
             }
             Spacer(modifier = Modifier.height(8.dp))
             Text(text = complaint.message, color = Color.LightGray, fontSize = 14.sp)

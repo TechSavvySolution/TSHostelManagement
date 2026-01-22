@@ -60,12 +60,24 @@ sealed class Screens(val route: String, val title: String = "") {
 
     object Staff {
         object Home : Screens("staff_home", "Staff Home")
+        object Complaints : Screens("staff_complaints", "My Tasks")
+        object ComplaintDetails : Screens("staff_complaint_details", "Complaint Details") {
+            fun createRoute(complaintId: String) = "staff_complaint_details/$complaintId"
+        }
+        object Chat : Screens("staff_chat", "Chat") {
+            fun createRoute(hostelerId: String) = "staff_chat/$hostelerId"
+        }
+        // ADD THIS:
+        object Profile : Screens("staff_profile", "My Profile")
+        object Settings : Screens("staff_settings", "Settings")
     }
 
     object Hosteler {
         object Home : Screens("hosteler_home", "Hostel Home")
         object Complaints : Screens("hosteler_complaints", "My Complaints")
         object RaiseComplaint : Screens("raise_complaint", "Raise Complaint")
+        object Profile : Screens("hosteler_profile", "My Profile")
+        object Settings : Screens("hosteler_settings", "Settings")
     }
 }
 

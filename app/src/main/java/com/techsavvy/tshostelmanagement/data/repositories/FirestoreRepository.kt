@@ -35,6 +35,18 @@ class FirestoreRepository @Inject constructor(private val firestore: FirebaseFir
         firestore.collection("hosteller_room").add(hostellerRoom)
     }
 
+    suspend fun getComplaintById(complaintId: String): Complaint? {
+        return try {
+            firestore.collection("complaints")
+                .document(complaintId)
+                .get()
+                .await()
+                .toObject<Complaint>()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
     fun getHostelers(): Flow<List<User>> = callbackFlow {
         val listener = firestore.collection("users")
             .whereEqualTo("role", Role.HOSTELER)
@@ -70,6 +82,19 @@ class FirestoreRepository @Inject constructor(private val firestore: FirebaseFir
         awaitClose {
             result.remove()
         }
+    }
+
+    fun getAssignedStaffComplaints(staffUid: String): Flow<List<Complaint>> = callbackFlow {
+        val listener = firestore.collection("complaints")
+            .whereEqualTo("assignedStaffUid", staffUid)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+                snapshot?.let { trySend(it.toObjects<Complaint>()) }
+            }
+        awaitClose { listener.remove() }
     }
 
     fun getAssignedUsers(): Flow<List<User>> = callbackFlow {
@@ -166,7 +191,7 @@ class FirestoreRepository @Inject constructor(private val firestore: FirebaseFir
         awaitClose { listener.remove() }
     }
 
-    // --- NEW: ADMIN COMPLAINT MANAGEMENT METHODS ---
+    // --- ADMIN COMPLAINT MANAGEMENT METHODS ---
 
     fun getAllComplaints(): Flow<List<Complaint>> = callbackFlow {
         val listener = firestore.collection("complaints")
@@ -186,15 +211,30 @@ class FirestoreRepository @Inject constructor(private val firestore: FirebaseFir
             .update("status", newStatus)
             .await()
     }
-
-    suspend fun assignStaff(complaintId: String, staffName: String, staffPhone: String) {
-        firestore.collection("complaints")
-            .document(complaintId)
-            .update(
-                "assignedStaffName", staffName,
-                "assignedStaffPhone", staffPhone,
-                "status", "In-Progress"
-            )
-            .await()
+    suspend fun deleteComplaint(complaintId: String): Result<Unit> {
+        return try {
+            firestore.collection("complaints")
+                .document(complaintId)
+                .delete()
+                .await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+    suspend fun assignStaff(complaintId: String, staffUid: String, staffName: String, staffPhone: String) {
+        try {
+            firestore.collection("complaints")
+                .document(complaintId)
+                .update(
+                    "assignedStaffUid", staffUid,
+                    "assignedStaffName", staffName,
+                    "assignedStaffPhone", staffPhone,
+                    "status", "In-Progress"
+                )
+                .await()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 }

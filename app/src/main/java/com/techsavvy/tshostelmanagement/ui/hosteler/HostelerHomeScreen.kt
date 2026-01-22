@@ -42,8 +42,12 @@ fun HostelerHomeScreen(
             HostelerTopBar(
                 userName = user?.name ?: "Hosteler",
                 onProfileClick = {
-                    // Navigates to profile if screen exists in your central nav
-                    // navController.navigate(Screens.Hosteler.Profile.route)
+                    // FIXED: Navigate to Hosteler Profile Route
+                    navController.navigate(Screens.Hosteler.Profile.route)
+                },
+                onSettingsClick = {
+                    // FIXED: Navigate to Hosteler Settings Route
+                    navController.navigate(Screens.Hosteler.Settings.route)
                 }
             )
         }
@@ -57,7 +61,6 @@ fun HostelerHomeScreen(
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
-            // --- OVERVIEW SECTION ---
             SectionHeader(title = "Overview")
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -88,14 +91,12 @@ fun HostelerHomeScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // --- ANNOUNCEMENTS ---
             AnnouncementButton(
                 onClick = { /* navController.navigate(Screens.Hosteler.Announcements.route) */ }
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // --- COMPLAINTS SECTION ---
             SectionHeader(title = "Complaints")
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -122,28 +123,48 @@ fun SectionHeader(title: String) {
 }
 
 @Composable
-fun HostelerTopBar(userName: String, onProfileClick: () -> Unit) {
+fun HostelerTopBar(
+    userName: String,
+    onProfileClick: () -> Unit,
+    onSettingsClick: () -> Unit
+) {
     Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+            .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
         Column {
             Text(text = "Welcome back,", color = Color.Gray, fontSize = 14.sp)
             Text(text = userName, color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
         }
 
-        Box(
+        Row(
             modifier = Modifier
-                .size(48.dp)
-                .clip(CircleShape)
-                .background(Color.White.copy(alpha = 0.1f))
-                .clickable { onProfileClick() },
-            contentAlignment = Alignment.Center
+                .clip(RoundedCornerShape(50.dp))
+                .background(Color.White.copy(alpha = 0.05f))
+                .border(
+                    1.dp,
+                    Brush.linearGradient(listOf(Color.White.copy(alpha = 0.2f), Color.Transparent)),
+                    RoundedCornerShape(50.dp)
+                )
+                .padding(horizontal = 8.dp)
         ) {
-            Icon(Icons.Rounded.Person, contentDescription = "Profile", tint = Color.White)
+            IconButton(onClick = onSettingsClick) {
+                Icon(
+                    imageVector = Icons.Rounded.Tune,
+                    contentDescription = "Settings",
+                    tint = Color.White.copy(alpha = 0.8f)
+                )
+            }
+            IconButton(onClick = onProfileClick) {
+                Icon(
+                    imageVector = Icons.Rounded.AccountCircle,
+                    contentDescription = "Profile",
+                    tint = Color.White.copy(alpha = 0.8f)
+                )
+            }
         }
     }
 }

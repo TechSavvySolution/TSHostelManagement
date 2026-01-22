@@ -1,17 +1,15 @@
 package com.techsavvy.tshostelmanagement.ui.admin.complaints
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.techsavvy.tshostelmanagement.data.models.Complaint
+import com.techsavvy.tshostelmanagement.data.models.User
 import com.techsavvy.tshostelmanagement.data.repositories.FirestoreRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.Flow // Explicit import
-import kotlinx.coroutines.flow.SharingStarted // Explicit import
-import kotlinx.coroutines.flow.stateIn // Explicit import
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -28,6 +26,11 @@ class AdminComplaintViewModel @Inject constructor(
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()
+
+    val staffList: StateFlow<List<User>> = repository.getStaff()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    var isStaffDropdownExpanded by mutableStateOf(false)
 
     val filteredComplaints = combine(_complaints, _searchQuery) { list, query ->
         if (query.isEmpty()) list
@@ -64,13 +67,18 @@ class AdminComplaintViewModel @Inject constructor(
         }
     }
 
-    fun assignStaff(complaintId: String, staffName: String, staffPhone: String) {
+    fun assignStaff(complaintId: String, staffUid: String, staffName: String, staffPhone: String) {
         viewModelScope.launch {
-            repository.assignStaff(complaintId, staffName, staffPhone)
+            repository.assignStaff(complaintId, staffUid, staffName, staffPhone)
+        }
+    }
+
+    fun deleteComplaint(complaintId: String) {
+        viewModelScope.launch {
+            repository.deleteComplaint(complaintId)
         }
     }
 }
 
-// Fixed Extension function
 fun <T> Flow<T>.toCustomStateFlow(scope: kotlinx.coroutines.CoroutineScope, initialValue: T): StateFlow<T> =
     this.stateIn(scope, SharingStarted.WhileSubscribed(5000), initialValue)

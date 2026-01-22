@@ -71,17 +71,126 @@ fun AdminComplaintScreen(
             ) {
                 ComplaintManagementContent(
                     complaint = selectedComplaint!!,
+                    viewModel = viewModel,
                     onUpdateStatus = { status ->
                         viewModel.updateStatus(selectedComplaint!!.id, status)
                         showSheet = false
                     },
-                    onAssignStaff = { name, phone ->
-                        viewModel.assignStaff(selectedComplaint!!.id, name, phone)
+                    onAssignStaff = { uid, name, phone ->
+                        viewModel.assignStaff(selectedComplaint!!.id, uid, name, phone)
+                        showSheet = false
+                    },
+                    onDelete = {
+                        viewModel.deleteComplaint(selectedComplaint!!.id)
                         showSheet = false
                     }
                 )
             }
         }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ComplaintManagementContent(
+    complaint: Complaint,
+    viewModel: AdminComplaintViewModel,
+    onUpdateStatus: (String) -> Unit,
+    onAssignStaff: (String, String, String) -> Unit,
+    onDelete: () -> Unit
+) {
+    val staffList by viewModel.staffList.collectAsState()
+
+    var staffUid by remember { mutableStateOf(complaint.assignedStaffUid ?: "") }
+    var staffName by remember { mutableStateOf(complaint.assignedStaffName ?: "") }
+    var staffPhone by remember { mutableStateOf(complaint.assignedStaffPhone ?: "") }
+
+    Column(modifier = Modifier.padding(24.dp).fillMaxWidth()) {
+        Text("User Details", color = Color(0xFF22D3EE), fontWeight = FontWeight.Bold)
+        Spacer(modifier = Modifier.height(8.dp))
+        DetailRow("Name", complaint.userName)
+        DetailRow("Email", complaint.userEmail)
+        DetailRow("Phone", complaint.userPhone)
+        DetailRow("Location", "Floor ${complaint.floor}, Room ${complaint.roomNo}")
+
+        HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), color = Color.White.copy(alpha = 0.1f))
+
+        Text("Assign Staff", color = Color(0xFF22D3EE), fontWeight = FontWeight.Bold)
+        Spacer(modifier = Modifier.height(8.dp))
+
+        ExposedDropdownMenuBox(
+            expanded = viewModel.isStaffDropdownExpanded,
+            onExpandedChange = { viewModel.isStaffDropdownExpanded = it }
+        ) {
+            OutlinedTextField(
+                value = if (staffName.isEmpty()) "Select Staff Member" else staffName,
+                onValueChange = {},
+                readOnly = true,
+                trailingIcon = {
+                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = viewModel.isStaffDropdownExpanded)
+                },
+                colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                    focusedLabelColor = Color(0xFF22D3EE)
+                ),
+                modifier = Modifier
+                    .menuAnchor()
+                    .fillMaxWidth()
+            )
+
+            ExposedDropdownMenu(
+                expanded = viewModel.isStaffDropdownExpanded,
+                onDismissRequest = { viewModel.isStaffDropdownExpanded = false },
+                modifier = Modifier.background(Color(0xFF1E293B))
+            ) {
+                staffList.forEach { staff ->
+                    DropdownMenuItem(
+                        text = {
+                            Column {
+                                Text(staff.name, color = Color.White)
+                                Text(staff.phone, color = Color.Gray, fontSize = 12.sp)
+                            }
+                        },
+                        onClick = {
+                            staffUid = staff.uid
+                            staffName = staff.name
+                            staffPhone = staff.phone
+                            viewModel.isStaffDropdownExpanded = false
+                        },
+                        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                    )
+                }
+            }
+        }
+
+        Button(
+            onClick = { onAssignStaff(staffUid, staffName, staffPhone) },
+            modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6366F1)),
+            enabled = staffName.isNotEmpty()
+        ) {
+            Text("Assign & Mark In-Progress")
+        }
+
+        Button(
+            onClick = { onUpdateStatus("Resolved") },
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4ADE80))
+        ) {
+            Text("Mark as Resolved", color = Color.Black)
+        }
+
+        // Added Delete Functionality with a matching Red theme
+        Button(
+            onClick = onDelete,
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF87171))
+        ) {
+            Text("Delete Complaint", color = Color.White)
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
     }
 }
 
@@ -104,58 +213,6 @@ fun ComplaintAdminCard(complaint: Complaint, onClick: () -> Unit) {
 }
 
 @Composable
-fun ComplaintManagementContent(
-    complaint: Complaint,
-    onUpdateStatus: (String) -> Unit,
-    onAssignStaff: (String, String) -> Unit
-) {
-    var staffName by remember { mutableStateOf(complaint.assignedStaffName ?: "") }
-    var staffPhone by remember { mutableStateOf(complaint.assignedStaffPhone ?: "") }
-
-    Column(modifier = Modifier.padding(24.dp).fillMaxWidth()) {
-        Text("User Details", color = Color(0xFF22D3EE), fontWeight = FontWeight.Bold)
-        Spacer(modifier = Modifier.height(8.dp))
-        DetailRow("Name", complaint.userName)
-        DetailRow("Email", complaint.userEmail)
-        DetailRow("Phone", complaint.userPhone)
-        DetailRow("Location", "Floor ${complaint.floor}, Room ${complaint.roomNo}")
-
-        HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), color = Color.White.copy(alpha = 0.1f))
-
-        Text("Assign Staff", color = Color(0xFF22D3EE), fontWeight = FontWeight.Bold)
-        OutlinedTextField(
-            value = staffName,
-            onValueChange = { staffName = it },
-            label = { Text("Staff Name") },
-            modifier = Modifier.fillMaxWidth()
-        )
-        OutlinedTextField(
-            value = staffPhone,
-            onValueChange = { staffPhone = it },
-            label = { Text("Staff Phone") },
-            modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
-        )
-
-        Button(
-            onClick = { onAssignStaff(staffName, staffPhone) },
-            modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6366F1))
-        ) {
-            Text("Update Staff Details")
-        }
-
-        Button(
-            onClick = { onUpdateStatus("Resolved") },
-            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4ADE80))
-        ) {
-            Text("Mark as Resolved", color = Color.Black)
-        }
-        Spacer(modifier = Modifier.height(24.dp))
-    }
-}
-
-@Composable
 fun DetailRow(label: String, value: String) {
     Row(modifier = Modifier.padding(vertical = 2.dp)) {
         Text("$label: ", color = Color.Gray, modifier = Modifier.width(80.dp))
@@ -168,6 +225,7 @@ fun StatusChip(status: String) {
     val color = when(status) {
         "Pending" -> Color(0xFFF87171)
         "Resolved" -> Color(0xFF4ADE80)
+        "In-Progress" -> Color(0xFF6366F1)
         else -> Color.Yellow
     }
     Surface(color = color.copy(alpha = 0.1f), shape = RoundedCornerShape(8.dp)) {
