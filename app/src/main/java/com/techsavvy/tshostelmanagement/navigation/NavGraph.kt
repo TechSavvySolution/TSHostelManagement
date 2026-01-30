@@ -11,6 +11,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.navigation
+import com.techsavvy.tshostelmanagement.ui.admin.announcements.AddEditAnnouncementScreen
 import com.techsavvy.tshostelmanagement.ui.admin.complaints.AdminComplaintScreen
 import com.techsavvy.tshostelmanagement.ui.admin.fees.FeesScreen
 import com.techsavvy.tshostelmanagement.ui.admin.home.AdminHomeScreen
@@ -33,12 +34,16 @@ import com.techsavvy.tshostelmanagement.ui.hosteler.RaiseComplaintScreen
 import com.techsavvy.tshostelmanagement.ui.hosteler.home.HostelerHomeScreen
 import com.techsavvy.tshostelmanagement.ui.hosteler.profile.HostelerProfileScreen
 
+// ANNOUNCEMENT MODULE IMPORTS
+import com.techsavvy.tshostelmanagement.ui.admin.announcements.AdminAnnouncementsScreen
+import com.techsavvy.tshostelmanagement.ui.hosteler.home.HostelerAnnouncementsScreen
+
 // STAFF MODULE IMPORTS
 import com.techsavvy.tshostelmanagement.ui.staff.home.HomeScreen
 import com.techsavvy.tshostelmanagement.ui.staff.complaints.StaffComplaintsScreen
 import com.techsavvy.tshostelmanagement.ui.staff.complaints.StaffComplaintDetailsScreen
 import com.techsavvy.tshostelmanagement.ui.staff.profile.StaffProfileScreen
-import com.techsavvy.tshostelmanagement.ui.staff.settings.StaffSettingsScreen // Added Import
+import com.techsavvy.tshostelmanagement.ui.staff.settings.StaffSettingsScreen
 
 @Composable
 fun NavGraph(navController: NavHostController) {
@@ -87,6 +92,15 @@ fun NavGraphBuilder.adminGraph(navController: NavController) {
         ) {
             AssignHostellerScreen(navController = navController)
         }
+
+        // ADMIN ANNOUNCEMENTS
+        composable(Screens.Admin.Announcements.route) { AdminAnnouncementsScreen(navController) }
+        composable(Screens.Admin.AddAnnouncement.route) { AddEditAnnouncementScreen(navController) }
+        composable("${Screens.Admin.EditAnnouncement.route}/{id}") { backStackEntry ->
+            val id = backStackEntry.arguments?.getString("id")
+            AddEditAnnouncementScreen(navController, announcementId = id)
+        }
+
         composable(Screens.Admin.Complaints.route) { AdminComplaintScreen(navController) }
         composable(Screens.Admin.Fees.route) { FeesScreen() }
         composable(Screens.Admin.Reports.route) { ReportsScreen() }
@@ -122,6 +136,10 @@ fun NavGraphBuilder.hostelerGraph(navController: NavController) {
         composable(Screens.Hosteler.Settings.route) {
             HostelerSettingsScreen(navController)
         }
+        // HOSTELER ANNOUNCEMENTS
+        composable(Screens.Hosteler.Announcements.route) {
+            HostelerAnnouncementsScreen(navController)
+        }
     }
 }
 
@@ -143,7 +161,6 @@ fun NavGraphBuilder.staffGraph(navController: NavController) {
         composable(Screens.Staff.Profile.route) {
             StaffProfileScreen(navController = navController)
         }
-        // Added Settings Destination
         composable(Screens.Staff.Settings.route) {
             StaffSettingsScreen(navController = navController)
         }

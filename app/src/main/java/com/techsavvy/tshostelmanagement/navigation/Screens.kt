@@ -4,6 +4,11 @@ sealed class Screens(val route: String, val title: String = "") {
     object Login : Screens("login", "Login")
 
     object Admin {
+        object Announcements : Screens("admin_announcements", "Announcements")
+        object AddAnnouncement : Screens("admin_add_announcement", "Add Announcement")
+        object EditAnnouncement : Screens("admin_edit_announcement", "Edit Announcement") {
+            fun createRoute(id: String) = "admin_edit_announcement/$id"
+        }
         object Home : Screens("admin_home", "Admin Home")
         object Infrastructure : Screens("admin_infrastructure", "Infrastructure")
         object Hostellers : Screens("admin_hostellers", "Hostellers")
@@ -73,6 +78,7 @@ sealed class Screens(val route: String, val title: String = "") {
     }
 
     object Hosteler {
+        object Announcements : Screens("hosteler_announcements", "Announcements")
         object Home : Screens("hosteler_home", "Hostel Home")
         object Complaints : Screens("hosteler_complaints", "My Complaints")
         object RaiseComplaint : Screens("raise_complaint", "Raise Complaint")

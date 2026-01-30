@@ -47,6 +47,7 @@ class FirestoreRepository @Inject constructor(private val firestore: FirebaseFir
             null
         }
     }
+
     fun getHostelers(): Flow<List<User>> = callbackFlow {
         val listener = firestore.collection("users")
             .whereEqualTo("role", Role.HOSTELER)
@@ -191,6 +192,42 @@ class FirestoreRepository @Inject constructor(private val firestore: FirebaseFir
         awaitClose { listener.remove() }
     }
 
+    // --- ANNOUNCEMENT MODULE METHODS ---
+
+    /**
+     * Fetches announcements sorted by createdAt on the server.
+     * Memory-side sorting by "order" is handled in the ViewModel.
+     */
+    fun getAnnouncements(onlyActive: Boolean = false): Flow<List<Announcement>> = callbackFlow {
+        var query = firestore.collection("announcements")
+            .orderBy("createdAt", com.google.firebase.firestore.Query.Direction.DESCENDING)
+
+        if (onlyActive) {
+            query = query.whereEqualTo("isActive", true)
+        }
+
+        val listener = query.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                close(error)
+                return@addSnapshotListener
+            }
+            snapshot?.let { trySend(it.toObjects<Announcement>()) }
+        }
+        awaitClose { listener.remove() }
+    }
+
+    suspend fun saveAnnouncement(announcement: Announcement) {
+        if (announcement.id.isEmpty()) {
+            firestore.collection("announcements").add(announcement).await()
+        } else {
+            firestore.collection("announcements").document(announcement.id).set(announcement).await()
+        }
+    }
+
+    suspend fun deleteAnnouncement(id: String) {
+        firestore.collection("announcements").document(id).delete().await()
+    }
+
     // --- ADMIN COMPLAINT MANAGEMENT METHODS ---
 
     fun getAllComplaints(): Flow<List<Complaint>> = callbackFlow {
@@ -211,6 +248,7 @@ class FirestoreRepository @Inject constructor(private val firestore: FirebaseFir
             .update("status", newStatus)
             .await()
     }
+
     suspend fun deleteComplaint(complaintId: String): Result<Unit> {
         return try {
             firestore.collection("complaints")
@@ -222,6 +260,7 @@ class FirestoreRepository @Inject constructor(private val firestore: FirebaseFir
             Result.failure(e)
         }
     }
+
     suspend fun assignStaff(complaintId: String, staffUid: String, staffName: String, staffPhone: String) {
         try {
             firestore.collection("complaints")

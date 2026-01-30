@@ -42,11 +42,9 @@ fun HostelerHomeScreen(
             HostelerTopBar(
                 userName = user?.name ?: "Hosteler",
                 onProfileClick = {
-                    // FIXED: Navigate to Hosteler Profile Route
                     navController.navigate(Screens.Hosteler.Profile.route)
                 },
                 onSettingsClick = {
-                    // FIXED: Navigate to Hosteler Settings Route
                     navController.navigate(Screens.Hosteler.Settings.route)
                 }
             )
@@ -91,8 +89,9 @@ fun HostelerHomeScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // UPDATED: Now navigates to the Hosteler Announcements route
             AnnouncementButton(
-                onClick = { /* navController.navigate(Screens.Hosteler.Announcements.route) */ }
+                onClick = { navController.navigate(Screens.Hosteler.Announcements.route) }
             )
 
             Spacer(modifier = Modifier.height(24.dp))

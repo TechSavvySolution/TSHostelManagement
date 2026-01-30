@@ -9,17 +9,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -30,6 +20,7 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -66,7 +57,89 @@ fun AdminHomeScreen(navController: NavController) {
                     Spacer(modifier = Modifier.height(24.dp))
                     AnalyticsSection()
                     Spacer(modifier = Modifier.height(24.dp))
+
+                    // NEW: Announcement Section Banner
+                    AnnouncementSection(navController = navController)
+
+                    Spacer(modifier = Modifier.height(24.dp))
                     ModuleSection(navController = navController)
+                    Spacer(modifier = Modifier.height(40.dp))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun AnnouncementSection(navController: NavController) {
+    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+        Text(
+            text = "Broadcast",
+            color = Color.White,
+            fontSize = 22.sp,
+            fontWeight = FontWeight.SemiBold
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Surface(
+            onClick = { navController.navigate(Screens.Admin.Announcements.route) },
+            shape = RoundedCornerShape(24.dp),
+            color = Color.Transparent,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(90.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.horizontalGradient(
+                            colors = listOf(Color(0xFF6366F1), Color(0xFF8B5CF6))
+                        )
+                    )
+                    .padding(horizontal = 20.dp),
+                contentAlignment = Alignment.CenterStart
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color.White.copy(alpha = 0.2f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Rounded.Campaign,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(28.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column {
+                            Text(
+                                "Announcements",
+                                color = Color.White,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                "Manage updates for hostelers",
+                                color = Color.White.copy(alpha = 0.8f),
+                                fontSize = 12.sp
+                            )
+                        }
+                    }
+                    Icon(
+                        Icons.AutoMirrored.Rounded.ArrowForward,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(24.dp)
+                    )
                 }
             }
         }
@@ -200,7 +273,7 @@ fun ModuleSection(navController: NavController) {
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
             contentPadding = PaddingValues(bottom = 16.dp),
-            modifier = Modifier.height(572.dp) // Adjust height as needed
+            modifier = Modifier.height(760.dp) // Height increased to accommodate 4 rows
         ) {
             items(adminModules) { module ->
                 ModuleGridItem(module = module, onClick = { navController.navigate(module.route) })
@@ -267,12 +340,13 @@ data class AnalyticsItem(
 )
 
 val adminModules = listOf(
-    AdminModule("Hostellers", "Manage student records and details", Screens.Admin.Hostellers.route, Icons.Rounded.Group, Color(0xFF4ADE80)),
-    AdminModule("Infrastructure", "Manage buildings, rooms, and assets", Screens.Admin.Infrastructure.route, Icons.Rounded.Apartment, Color(0xFF22D3EE)),
-    AdminModule("Staff", "Manage staff members and roles", Screens.Admin.Staff.route, Icons.Rounded.People, Color(0xFFF87171)),
-    AdminModule("Complaints", "Track and resolve student complaints", Screens.Admin.Complaints.route, Icons.Rounded.Report, Color(0xFFFACC15)),
-    AdminModule("Fees", "Manage fee payments and records", Screens.Admin.Fees.route, Icons.Rounded.Payment, Color(0xFF818CF8)),
-    AdminModule("Reports", "Generate and view hostel reports", Screens.Admin.Reports.route, Icons.Rounded.Assessment, Color(0xFFA78BFA))
+    AdminModule("Hostellers", "Manage student records", Screens.Admin.Hostellers.route, Icons.Rounded.Group, Color(0xFF4ADE80)),
+    AdminModule("Infrastructure", "Manage buildings & rooms", Screens.Admin.Infrastructure.route, Icons.Rounded.Apartment, Color(0xFF22D3EE)),
+    AdminModule("Staff", "Manage staff roles", Screens.Admin.Staff.route, Icons.Rounded.People, Color(0xFFF87171)),
+    AdminModule("Complaints", "Track student reports", Screens.Admin.Complaints.route, Icons.Rounded.Report, Color(0xFFFACC15)),
+    AdminModule("Announcements", "Broadcast news", Screens.Admin.Announcements.route, Icons.Rounded.Campaign, Color(0xFF6366F1)), // Added here
+    AdminModule("Fees", "Manage payments", Screens.Admin.Fees.route, Icons.Rounded.Payment, Color(0xFF818CF8)),
+    AdminModule("Reports", "View hostel analytics", Screens.Admin.Reports.route, Icons.Rounded.Assessment, Color(0xFFA78BFA))
 )
 
 val analyticsItems = listOf(

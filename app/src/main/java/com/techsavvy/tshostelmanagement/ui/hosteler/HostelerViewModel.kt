@@ -3,6 +3,7 @@ package com.techsavvy.tshostelmanagement.ui.hosteler.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
+import com.techsavvy.tshostelmanagement.data.models.Announcement
 import com.techsavvy.tshostelmanagement.data.models.User
 import com.techsavvy.tshostelmanagement.data.repositories.FirestoreRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -23,6 +24,10 @@ class HostelerViewModel @Inject constructor(
     private val _currentUser = MutableStateFlow<User?>(null)
     val currentUser = _currentUser.asStateFlow()
 
+    // Announcement State
+    private val _announcements = MutableStateFlow<List<Announcement>>(emptyList())
+    val announcements = _announcements.asStateFlow()
+
     // Dashboard Properties
     val currentDate: String = SimpleDateFormat("dd MMM, yyyy", Locale.getDefault()).format(Date())
 
@@ -37,6 +42,7 @@ class HostelerViewModel @Inject constructor(
 
     init {
         fetchCurrentUser()
+        fetchActiveAnnouncements()
     }
 
     private fun fetchCurrentUser() {
@@ -49,6 +55,23 @@ class HostelerViewModel @Inject constructor(
                 } catch (e: Exception) {
                     // Handle error if needed
                 }
+            }
+        }
+    }
+
+    /**
+     * Fetches only active announcements for the hosteler home screen
+     * Sorted by your repository's logic (Order and CreatedAt)
+     */
+    private fun fetchActiveAnnouncements() {
+        viewModelScope.launch {
+            try {
+                // Using the repository method to collect active announcements
+                repository.getAnnouncements(onlyActive = true).collect { list ->
+                    _announcements.value = list
+                }
+            } catch (e: Exception) {
+                // Handle error if needed
             }
         }
     }
