@@ -203,7 +203,7 @@ class FirestoreRepository @Inject constructor(private val firestore: FirebaseFir
             .orderBy("createdAt", com.google.firebase.firestore.Query.Direction.DESCENDING)
 
         if (onlyActive) {
-            query = query.whereEqualTo("isActive", true)
+            query = query.whereEqualTo("active", true)
         }
 
         val listener = query.addSnapshotListener { snapshot, error ->
