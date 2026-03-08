@@ -2,6 +2,7 @@ package com.techsavvy.tshostelmanagement.ui.admin.staff
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.techsavvy.tshostelmanagement.data.models.User
 import com.techsavvy.tshostelmanagement.data.repositories.FirestoreRepository
@@ -27,8 +28,19 @@ class AddStaffViewModel @Inject constructor(
         viewModelScope.launch {
             _authState.value = AuthState.Loading
             try {
-                // 1. Create Auth Account
-                val result = auth.createUserWithEmailAndPassword(email, password).await()
+                // 1. Get default app options
+                val defaultApp = FirebaseApp.getInstance()
+                val options = defaultApp.options
+                
+                // 2. Initialize a secondary app manually
+                val secondaryAppName = "SecondaryApp_${System.currentTimeMillis()}"
+                val secondaryApp = FirebaseApp.initializeApp(defaultApp.applicationContext, options, secondaryAppName)
+                
+                // 3. Get Auth instance for the secondary app
+                val secondaryAuth = FirebaseAuth.getInstance(secondaryApp)
+                
+                // 4. Create the user on the secondary instance (doesn't affect primary auth state)
+                val result = secondaryAuth.createUserWithEmailAndPassword(email, password).await()
                 val firebaseUser = result.user
 
                 if (firebaseUser != null) {
@@ -49,6 +61,10 @@ class AddStaffViewModel @Inject constructor(
                 } else {
                     _authState.value = AuthState.Error("User creation failed.")
                 }
+                
+                // Clean up: Delete the secondary app
+                secondaryApp.delete()
+                
             } catch (e: Exception) {
                 _authState.value = AuthState.Error(e.localizedMessage ?: "Registration failed.")
             }

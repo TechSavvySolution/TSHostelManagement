@@ -5,6 +5,9 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -57,17 +60,14 @@ fun LoginScreen(navController: NavHostController, viewModel: AuthViewModel) {
     val authState by viewModel.authState.collectAsState()
     val context = LocalContext.current
 
+    var isVisible by remember { mutableStateOf(false) }
+
     LaunchedEffect(Unit) {
         scale.animateTo(1f, tween(800))
         alpha.animateTo(1f, tween(700))
+        isVisible = true
     }
-    viewModel.isLoading.collectAsState().value.let{
-        if(it){
-            Dialog(onDismissRequest = {}) {
-                CircularProgressIndicator()
-            }
-        }
-    }
+
 
     LaunchedEffect(authState) {
         when (val state = authState) {
@@ -155,8 +155,13 @@ fun LoginScreen(navController: NavHostController, viewModel: AuthViewModel) {
                     .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-
-                // EMAIL FIELD
+                
+                AnimatedVisibility(
+                    visible = isVisible,
+                    enter = slideInVertically(initialOffsetY = { 50 }, animationSpec = tween(500, delayMillis = 200)) + fadeIn(animationSpec = tween(500, delayMillis = 200))
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        // EMAIL FIELD
                 TextField(
                     value = email,
                     onValueChange = { email = it },
@@ -218,6 +223,8 @@ fun LoginScreen(navController: NavHostController, viewModel: AuthViewModel) {
                         )
                     }
                 }
+                } // End of Column
+                } // End of AnimatedVisibility
             }
         }
     }

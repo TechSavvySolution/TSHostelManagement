@@ -22,6 +22,7 @@ class AdminAnnouncementViewModel @Inject constructor(
     // State for Add/Edit
     var title by mutableStateOf("")
     var description by mutableStateOf("")
+    var imageUrl by mutableStateOf("")
     var order by mutableStateOf("0")
     var isActive by mutableStateOf(true)
 
@@ -47,6 +48,7 @@ class AdminAnnouncementViewModel @Inject constructor(
         current?.let {
             title = it.title
             description = it.description
+            imageUrl = it.imageUrl ?: ""
             order = it.order.toString()
             isActive = it.isActive
         }
@@ -57,6 +59,7 @@ class AdminAnnouncementViewModel @Inject constructor(
             id = id ?: "",
             title = title,
             description = description,
+            imageUrl = imageUrl.ifBlank { null },
             order = order.toIntOrNull() ?: 0,
             isActive = isActive,
             createdAt = System.currentTimeMillis()

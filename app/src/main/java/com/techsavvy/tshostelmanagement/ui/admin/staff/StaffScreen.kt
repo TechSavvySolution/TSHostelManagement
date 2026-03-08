@@ -8,7 +8,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -33,9 +35,34 @@ fun StaffScreen(
     var showMenu by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
     val staffList by viewModel.staffList.collectAsState()
+    var staffToDelete by remember { mutableStateOf<User?>(null) }
 
     val filteredStaff = staffList.filter {
         it.name.contains(searchQuery, ignoreCase = true) || it.email.contains(searchQuery, ignoreCase = true)
+    }
+
+    // Soft-Delete Confirmation Dialog
+    if (staffToDelete != null) {
+        AlertDialog(
+            onDismissRequest = { staffToDelete = null },
+            containerColor = Color(0xFF1E293B),
+            title = { Text("Remove Staff Member?", color = Color.White, fontWeight = FontWeight.Bold) },
+            text = {
+                Text(
+                    "\"${staffToDelete?.name}\" will be soft-deleted and hidden from all views. The record is preserved in Firestore.",
+                    color = Color.Gray
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    staffToDelete?.let { viewModel.softDeleteStaff(it.uid) }
+                    staffToDelete = null
+                }) { Text("Remove", color = Color(0xFFF87171), fontWeight = FontWeight.Bold) }
+            },
+            dismissButton = {
+                TextButton(onClick = { staffToDelete = null }) { Text("Cancel", color = Color.White) }
+            }
+        )
     }
 
     Scaffold(
@@ -62,18 +89,11 @@ fun StaffScreen(
                 ) {
                     DropdownMenuItem(
                         text = { Text("Add Staff", color = Color.White) },
-                        onClick = {
-                            showMenu = false
-                            // Navigating to Add Staff screen using centralized route
-                            navController.navigate(Screens.Admin.AddStaff.route)
-                        }
+                        onClick = { showMenu = false; navController.navigate(Screens.Admin.AddStaff.route) }
                     )
                     DropdownMenuItem(
                         text = { Text("Assign Task", color = Color.White) },
-                        onClick = {
-                            showMenu = false
-                            navController.navigate(Screens.Admin.AssignTask.route)
-                        }
+                        onClick = { showMenu = false; navController.navigate(Screens.Admin.AssignTask.route) }
                     )
                 }
             }
@@ -102,7 +122,11 @@ fun StaffScreen(
             } else {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     items(filteredStaff) { staff ->
-                        StaffListItem(user = staff)
+                        StaffListItem(
+                            user = staff,
+                            onEditClick = { navController.navigate(Screens.Admin.EditStaff.createRoute(staff.uid)) },
+                            onDeleteClick = { staffToDelete = staff }
+                        )
                     }
                 }
             }
@@ -111,7 +135,7 @@ fun StaffScreen(
 }
 
 @Composable
-fun StaffListItem(user: User) {
+fun StaffListItem(user: User, onEditClick: () -> Unit = {}, onDeleteClick: () -> Unit = {}) {
     Card(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent)
@@ -120,7 +144,7 @@ fun StaffListItem(user: User) {
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Brush.horizontalGradient(listOf(Color(0xFF0F172A), Color(0xFF1E293B))), RoundedCornerShape(16.dp))
-                .padding(16.dp),
+                .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
@@ -129,10 +153,19 @@ fun StaffListItem(user: User) {
             ) {
                 Text(user.name.take(1).uppercase(), color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 20.sp)
             }
-            Column(modifier = Modifier.padding(start = 16.dp).weight(1f)) {
+            Column(modifier = Modifier.padding(start = 14.dp).weight(1f)) {
                 Text(text = user.name, fontWeight = FontWeight.Bold, color = Color.White)
-                Text(text = user.email, color = Color.Gray, fontSize = 14.sp)
+                Text(text = user.email, color = Color.Gray, fontSize = 13.sp)
+            }
+            // EDIT button
+            IconButton(onClick = onEditClick) {
+                Icon(androidx.compose.material.icons.Icons.Filled.Edit, "Edit Staff", tint = Color.LightGray)
+            }
+            // SOFT DELETE button
+            IconButton(onClick = onDeleteClick) {
+                Icon(Icons.Rounded.Delete, "Remove Staff", tint = Color(0xFFF87171))
             }
         }
     }
 }
+

@@ -23,6 +23,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,12 +35,18 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.techsavvy.tshostelmanagement.navigation.Screens
 import com.techsavvy.tshostelmanagement.ui.theme.TSHostelManagementTheme
 
 @Composable
-fun AdminHomeScreen(navController: NavController) {
+fun AdminHomeScreen(
+    navController: NavController,
+    viewModel: AdminHomeViewModel = hiltViewModel()
+) {
+    val stats by viewModel.stats.collectAsState()
+
     TSHostelManagementTheme {
         Box(
             modifier = Modifier
@@ -55,7 +62,7 @@ fun AdminHomeScreen(navController: NavController) {
                 item {
                     Header(navController = navController)
                     Spacer(modifier = Modifier.height(24.dp))
-                    AnalyticsSection()
+                    AnalyticsSection(stats = stats)
                     Spacer(modifier = Modifier.height(24.dp))
 
                     // NEW: Announcement Section Banner
@@ -211,7 +218,7 @@ fun Header(navController: NavController) {
 }
 
 @Composable
-fun AnalyticsSection() {
+fun AnalyticsSection(stats: DashboardStats) {
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
         Text(
             text = "Live Analytics",
@@ -224,8 +231,14 @@ fun AnalyticsSection() {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            AnalyticsCard(item = analyticsItems[0], modifier = Modifier.weight(1f))
-            AnalyticsCard(item = analyticsItems[1], modifier = Modifier.weight(1f))
+            AnalyticsCard(
+                item = AnalyticsItem("Total Students", stats.totalHostelers.toString(), Icons.Rounded.Group, Color(0xFF4ADE80)),
+                modifier = Modifier.weight(1f)
+            )
+            AnalyticsCard(
+                item = AnalyticsItem("Available Rooms", stats.availableRooms.toString(), Icons.Rounded.Bed, Color(0xFFFACC15)),
+                modifier = Modifier.weight(1f)
+            )
         }
     }
 }
@@ -344,12 +357,8 @@ val adminModules = listOf(
     AdminModule("Infrastructure", "Manage buildings & rooms", Screens.Admin.Infrastructure.route, Icons.Rounded.Apartment, Color(0xFF22D3EE)),
     AdminModule("Staff", "Manage staff roles", Screens.Admin.Staff.route, Icons.Rounded.People, Color(0xFFF87171)),
     AdminModule("Complaints", "Track student reports", Screens.Admin.Complaints.route, Icons.Rounded.Report, Color(0xFFFACC15)),
-    AdminModule("Announcements", "Broadcast news", Screens.Admin.Announcements.route, Icons.Rounded.Campaign, Color(0xFF6366F1)), // Added here
+    AdminModule("Announcements", "Broadcast news", Screens.Admin.Announcements.route, Icons.Rounded.Campaign, Color(0xFF6366F1)),
+    AdminModule("Mess Menu", "Manage weekly meals", Screens.Admin.MessMenu.route, Icons.Rounded.RestaurantMenu, Color(0xFFFB923C)),
     AdminModule("Fees", "Manage payments", Screens.Admin.Fees.route, Icons.Rounded.Payment, Color(0xFF818CF8)),
     AdminModule("Reports", "View hostel analytics", Screens.Admin.Reports.route, Icons.Rounded.Assessment, Color(0xFFA78BFA))
-)
-
-val analyticsItems = listOf(
-    AnalyticsItem("Total Students", "0", Icons.Rounded.Group, Color(0xFF4ADE80)),
-    AnalyticsItem("Available Rooms", "0", Icons.Rounded.Bed, Color(0xFFFACC15)),
 )

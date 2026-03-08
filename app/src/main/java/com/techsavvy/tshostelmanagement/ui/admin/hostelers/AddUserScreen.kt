@@ -118,7 +118,7 @@ fun AddUserScreen(
 
             Button(
                 onClick = {
-                    authViewModel.registerUser(email, password, username, phone)
+                    authViewModel.adminRegisterUser(email, password, username, phone)
                 },
                 modifier = Modifier
                     .fillMaxWidth()

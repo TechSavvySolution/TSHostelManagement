@@ -64,7 +64,7 @@ class InfrastructureViewModel @Inject constructor(
     }
 
     private fun getBlocks() {
-        db.collection("blocks").addSnapshotListener { snapshot, e ->
+        db.collection("blocks").whereEqualTo("deleted", false).addSnapshotListener { snapshot, e ->
             if (snapshot != null) {
                 _blocks.value = snapshot.documents.mapNotNull { it.toObject<Block>() }
             }
@@ -72,6 +72,10 @@ class InfrastructureViewModel @Inject constructor(
     }
 
     fun addBlock(name: String, alias: String?) {
+        if (_blocks.value.any { it.name.equals(name, ignoreCase = true) }) {
+            _snackbarChannel.trySend("A block with this name already exists")
+            return
+        }
         val block = Block(name = name, alias = alias)
         db.collection("blocks").add(block).addOnSuccessListener { _snackbarChannel.trySend("Block added successfully") }
     }
@@ -80,12 +84,23 @@ class InfrastructureViewModel @Inject constructor(
         db.collection("blocks").document(block.id).set(block).addOnSuccessListener { _snackbarChannel.trySend("Block updated successfully") }
     }
 
+    // SOFT DELETE — sets deleted=true on the block document
     fun deleteBlock(id: String) {
-        db.collection("blocks").document(id).delete().addOnSuccessListener { _snackbarChannel.trySend("Block deleted successfully") }
+        db.collection("blocks").document(id)
+            .update("deleted", true)
+            .addOnSuccessListener { 
+                _snackbarChannel.trySend("Block removed successfully") 
+                // Cascade delete associated floors and rooms
+                _floors.value.filter { it.blockId == id }.forEach { floor ->
+                    deleteFloorSilently(floor.id)
+                }
+            }
     }
 
     private fun getFloors() {
-        db.collection("floors").addSnapshotListener { snapshot, e ->
+        db.collection("floors")
+            .whereEqualTo("deleted", false)
+            .addSnapshotListener { snapshot, e ->
             if (snapshot != null) {
                 _floors.value = snapshot.documents.mapNotNull { it.toObject<Floor>() }
             }
@@ -94,6 +109,7 @@ class InfrastructureViewModel @Inject constructor(
 
     fun getFloorsForBlock(blockId: String) {
         db.collection("floors").whereEqualTo("blockId", blockId)
+            .whereEqualTo("deleted", false)
             .addSnapshotListener { snapshot, e ->
                 if (snapshot != null) {
                     _floors.value = snapshot.documents.mapNotNull { it.toObject<Floor>() }
@@ -102,6 +118,10 @@ class InfrastructureViewModel @Inject constructor(
     }
 
     fun addFloor(name: String, blockId: String, alias: String? = null) {
+        if (_floors.value.any { it.blockId == blockId && it.name.equals(name, ignoreCase = true) }) {
+            _snackbarChannel.trySend("A floor with this name already exists in this block")
+            return
+        }
         val floor = Floor(name = name, blockId = blockId, alias = alias)
         db.collection("floors").add(floor).addOnSuccessListener { _snackbarChannel.trySend("Floor added successfully") }
     }
@@ -110,12 +130,27 @@ class InfrastructureViewModel @Inject constructor(
         db.collection("floors").document(floor.id).set(floor).addOnSuccessListener { _snackbarChannel.trySend("Floor updated successfully") }
     }
 
+    // SOFT DELETE — sets deleted=true on the floor document
     fun deleteFloor(id: String) {
-        db.collection("floors").document(id).delete().addOnSuccessListener { _snackbarChannel.trySend("Floor deleted successfully") }
+        db.collection("floors").document(id)
+            .update("deleted", true)
+            .addOnSuccessListener { 
+                _snackbarChannel.trySend("Floor removed successfully") 
+                deleteFloorSilently(id)
+            }
+    }
+
+    private fun deleteFloorSilently(id: String) {
+        db.collection("floors").document(id).update("deleted", true)
+        _rooms.value.filter { it.floorId == id }.forEach { room ->
+            db.collection("rooms").document(room.id).update("deleted", true)
+        }
     }
 
     private fun getRooms() {
-        db.collection("rooms").addSnapshotListener { snapshot, e ->
+        db.collection("rooms")
+            .whereEqualTo("deleted", false)
+            .addSnapshotListener { snapshot, e ->
             if (snapshot != null) {
                 _rooms.value = snapshot.documents.mapNotNull { it.toObject<Room>() }
             }
@@ -124,6 +159,7 @@ class InfrastructureViewModel @Inject constructor(
 
     fun getRoomsForFloor(floorId: String) {
         db.collection("rooms").whereEqualTo("floorId", floorId)
+            .whereEqualTo("deleted", false)
             .addSnapshotListener { snapshot, e ->
                 if (snapshot != null) {
                     _rooms.value = snapshot.documents.mapNotNull { it.toObject<Room>() }
@@ -132,6 +168,10 @@ class InfrastructureViewModel @Inject constructor(
     }
 
     fun addRoom(name: String, roomNumber: Int, floorId: String, blockId: String, capacity: Int) {
+        if (_rooms.value.any { it.floorId == floorId && it.roomNumber == roomNumber }) {
+            _snackbarChannel.trySend("A room with this number already exists on this floor")
+            return
+        }
         val room = Room(
             name = name,
             roomNumber = roomNumber,
@@ -146,11 +186,24 @@ class InfrastructureViewModel @Inject constructor(
         db.collection("rooms").document(room.id).set(room).addOnSuccessListener { _snackbarChannel.trySend("Room updated successfully") }
     }
 
+    // SOFT DELETE — sets deleted=true on the room document
     fun deleteRoom(id: String) {
-        db.collection("rooms").document(id).delete().addOnSuccessListener { _snackbarChannel.trySend("Room deleted successfully") }
+        db.collection("rooms").document(id)
+            .update("deleted", true)
+            .addOnSuccessListener { _snackbarChannel.trySend("Room removed successfully") }
     }
 
+    // Generic soft delete used for cascade operations (when deleting a block with children)
     fun deleteItem(type: String, id: String) {
-        db.collection("${type}s").document(id).delete().addOnSuccessListener { _snackbarChannel.trySend("$type deleted successfully") }
+        when (type.lowercase()) {
+            "block" -> deleteBlock(id)
+            "floor" -> deleteFloor(id)
+            "room" -> deleteRoom(id)
+            else -> {
+                db.collection("${type}s").document(id)
+                    .update("deleted", true)
+                    .addOnSuccessListener { _snackbarChannel.trySend("$type removed successfully") }
+            }
+        }
     }
 }

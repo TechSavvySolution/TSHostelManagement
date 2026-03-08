@@ -27,13 +27,19 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.techsavvy.tshostelmanagement.navigation.Screens
+import com.techsavvy.tshostelmanagement.ui.hosteler.fees.HostelerFeesViewModel
 
 @Composable
 fun HostelerHomeScreen(
     navController: NavController,
-    viewModel: HostelerViewModel = hiltViewModel()
+    viewModel: HostelerViewModel = hiltViewModel(),
+    feesViewModel: HostelerFeesViewModel = hiltViewModel()
 ) {
     val user by viewModel.currentUser.collectAsState()
+    val messMenu by viewModel.messMenu.collectAsState()
+    val feeRecords by feesViewModel.feeRecords.collectAsState()
+    val feesStatus = feesViewModel.feesStatusText
+    val roomInfo by viewModel.roomInfo.collectAsState()
     val scrollState = rememberScrollState()
 
     Scaffold(
@@ -63,6 +69,13 @@ fun HostelerHomeScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Room Info Card
+            if (roomInfo != null) {
+                val (roomName, floorName, blockName) = roomInfo!!
+                RoomInfoCard(roomName = roomName, floorName = floorName, blockName = blockName)
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -76,16 +89,18 @@ fun HostelerHomeScreen(
                 )
                 InfoCard(
                     title = "Fees Status",
-                    value = viewModel.feesStatus,
+                    value = feesStatus,
                     icon = Icons.Rounded.AttachMoney,
-                    color = if (viewModel.feesStatus == "Paid") Color(0xFF4ADE80) else Color(0xFFF87171),
-                    modifier = Modifier.weight(1f)
+                    color = if (feesStatus == "Paid") Color(0xFF4ADE80) else Color(0xFFF87171),
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable { navController.navigate(Screens.Hosteler.Fees.route) }
                 )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            MessMenuCard(menu = viewModel.messMenu)
+            MessMenuCard(menu = messMenu)
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -169,6 +184,63 @@ fun HostelerTopBar(
 }
 
 @Composable
+fun RoomInfoCard(roomName: String, floorName: String, blockName: String) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    Brush.linearGradient(
+                        colors = listOf(Color(0xFF8B5CF6).copy(alpha = 0.2f), Color(0xFF6366F1).copy(alpha = 0.2f))
+                    )
+                )
+                .border(
+                    1.dp,
+                    Brush.linearGradient(listOf(Color(0xFF8B5CF6).copy(alpha = 0.5f), Color.Transparent)),
+                    RoundedCornerShape(20.dp)
+                )
+                .padding(20.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFF8B5CF6).copy(alpha = 0.2f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.MeetingRoom,
+                        contentDescription = "Room Info",
+                        tint = Color(0xFF8B5CF6)
+                    )
+                }
+                Spacer(modifier = Modifier.width(16.dp))
+                Column {
+                    Text(
+                        text = "My Assignment",
+                        color = Color.White.copy(alpha = 0.6f),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "$roomName • $floorName • $blockName",
+                        color = Color.White,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun InfoCard(title: String, value: String, icon: ImageVector, color: Color, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
@@ -184,7 +256,25 @@ fun InfoCard(title: String, value: String, icon: ImageVector, color: Color, modi
 }
 
 @Composable
-fun MessMenuCard(menu: Map<String, String>) {
+fun MessMenuCard(menu: com.techsavvy.tshostelmanagement.data.models.MessMenu) {
+    // Get today's day name to show today's meals first
+    val today = java.text.SimpleDateFormat("EEEE", java.util.Locale.getDefault()).format(java.util.Date())
+    val todayMenu = when (today) {
+        "Monday" -> menu.monday
+        "Tuesday" -> menu.tuesday
+        "Wednesday" -> menu.wednesday
+        "Thursday" -> menu.thursday
+        "Friday" -> menu.friday
+        "Saturday" -> menu.saturday
+        "Sunday" -> menu.sunday
+        else -> menu.monday
+    }
+    val mealsList = listOf(
+        "🌅 Breakfast" to todayMenu.breakfast,
+        "☀️ Lunch" to todayMenu.lunch,
+        "🌙 Dinner" to todayMenu.dinner
+    )
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -198,31 +288,34 @@ fun MessMenuCard(menu: Map<String, String>) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Rounded.RestaurantMenu, contentDescription = null, tint = Color(0xFFFACC15))
             Spacer(modifier = Modifier.width(12.dp))
-            Text("Mess Menu", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            Column {
+                Text("Mess Menu", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                Text("Today — $today", color = Color.Gray, fontSize = 11.sp)
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        menu.entries.forEachIndexed { index, entry ->
+        mealsList.forEachIndexed { index, (label, value) ->
             Row(
                 modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
                 verticalAlignment = Alignment.Top
             ) {
                 Text(
-                    text = entry.key,
+                    text = label,
                     color = Color.White.copy(alpha = 0.7f),
-                    fontSize = 14.sp,
-                    modifier = Modifier.width(80.dp),
+                    fontSize = 13.sp,
+                    modifier = Modifier.width(100.dp),
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
-                    text = entry.value,
+                    text = if (value.isBlank()) "—" else value,
                     color = Color.White,
-                    fontSize = 14.sp,
+                    fontSize = 13.sp,
                     modifier = Modifier.weight(1f)
                 )
             }
-            if (index < menu.size - 1) {
+            if (index < mealsList.size - 1) {
                 HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
             }
         }

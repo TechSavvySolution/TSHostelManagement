@@ -10,5 +10,6 @@ data class User(
     val phone: String = "",
     val role: Role = Role.HOSTELER,
     val active: Boolean = false,
-    val created_at: Long? = System.currentTimeMillis()
+    val created_at: Long? = System.currentTimeMillis(),
+    val deleted: Boolean = false   // SOFT DELETE flag
 )

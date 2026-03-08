@@ -9,4 +9,5 @@ data class Floor(
     val floorNumber: Int = 0,
     val description: String? = null,
     val alias: String? = null,
+    val deleted: Boolean = false   // SOFT DELETE flag
 )

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.techsavvy.tshostelmanagement.data.models.Announcement
+import com.techsavvy.tshostelmanagement.data.models.MessMenu
 import com.techsavvy.tshostelmanagement.data.models.User
 import com.techsavvy.tshostelmanagement.data.repositories.FirestoreRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -28,21 +29,24 @@ class HostelerViewModel @Inject constructor(
     private val _announcements = MutableStateFlow<List<Announcement>>(emptyList())
     val announcements = _announcements.asStateFlow()
 
+    // Mess Menu State (live from Firestore)
+    private val _messMenu = MutableStateFlow(MessMenu())
+    val messMenu = _messMenu.asStateFlow()
+
     // Dashboard Properties
     val currentDate: String = SimpleDateFormat("dd MMM, yyyy", Locale.getDefault()).format(Date())
 
-    // In a real app, these could be fetched from repository
-    val feesStatus = "Paid"
+    // feesStatus will be updated by HostelerFeesViewModel on home screen
+    val feesStatus = "Unpaid" // default — replaced by real data in home screen
 
-    val messMenu = mapOf(
-        "Breakfast" to "Aloo Paratha & Curd",
-        "Lunch" to "Rice, Dal, Mixed Veg, Chapati",
-        "Dinner" to "Fried Rice & Manchurian"
-    )
+    // Room Info: Triple(RoomName, FloorName, BlockName)
+    private val _roomInfo = MutableStateFlow<Triple<String, String, String>?>(null)
+    val roomInfo = _roomInfo.asStateFlow()
 
     init {
         fetchCurrentUser()
         fetchActiveAnnouncements()
+        fetchMessMenu()
     }
 
     private fun fetchCurrentUser() {
@@ -52,6 +56,7 @@ class HostelerViewModel @Inject constructor(
                 try {
                     val user = repository.getUser(uid)
                     _currentUser.value = user
+                    _roomInfo.value = repository.getHostelerRoomInfo(uid)
                 } catch (e: Exception) {
                     // Handle error if needed
                 }
@@ -61,17 +66,27 @@ class HostelerViewModel @Inject constructor(
 
     /**
      * Fetches only active announcements for the hosteler home screen
-     * Sorted by your repository's logic (Order and CreatedAt)
      */
     private fun fetchActiveAnnouncements() {
         viewModelScope.launch {
             try {
-                // Using the repository method to collect active announcements
                 repository.getAnnouncements(onlyActive = true).collect { list ->
                     _announcements.value = list
                 }
             } catch (e: Exception) {
                 // Handle error if needed
+            }
+        }
+    }
+
+    private fun fetchMessMenu() {
+        viewModelScope.launch {
+            try {
+                repository.getMessMenu().collect { menu ->
+                    _messMenu.value = menu
+                }
+            } catch (e: Exception) {
+                // Fallback silently
             }
         }
     }

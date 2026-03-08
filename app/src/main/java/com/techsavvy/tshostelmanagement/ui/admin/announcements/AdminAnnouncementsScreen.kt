@@ -46,7 +46,7 @@ fun AdminAnnouncementsScreen(
             title = { Text("Delete Announcement?", color = Color.White) },
             text = {
                 Text(
-                    "Are you sure you want to delete \"${announcementToDelete?.title}\"? This action cannot be undone.",
+                    "\"${announcementToDelete?.title}\" will be soft-deleted (hidden from all views, data preserved).",
                     color = Color.Gray
                 )
             },

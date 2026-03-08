@@ -9,4 +9,6 @@ data class Room(
     val floorId: String = "",
     val blockId: String = "",
     val capacity: Int = 0,
+    val isOccupied: Boolean = false,
+    val deleted: Boolean = false   // SOFT DELETE flag
 )

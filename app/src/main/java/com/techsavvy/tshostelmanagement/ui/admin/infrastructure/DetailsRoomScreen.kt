@@ -13,6 +13,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -31,6 +34,22 @@ fun DetailsRoomScreen(
     viewModel: InfrastructureViewModel = hiltViewModel()
 ) {
     val room by viewModel.selectedRoom.collectAsState()
+    val showDeleteConfirmation = remember { mutableStateOf(false) }
+
+    if (showDeleteConfirmation.value) {
+        StyledConfirmationDialog(
+            onConfirm = {
+                if (roomId != null) {
+                    viewModel.deleteRoom(roomId)
+                    navController.popBackStack()
+                }
+                showDeleteConfirmation.value = false
+            },
+            onDismiss = { showDeleteConfirmation.value = false },
+            title = "Confirm Deletion",
+            text = "Are you sure you want to delete this room? This action cannot be undone."
+        )
+    }
 
     LaunchedEffect(roomId) {
         if (roomId != null) {
@@ -121,8 +140,7 @@ fun DetailsRoomScreen(
                     }
                     Button(
                         onClick = { 
-                            viewModel.deleteRoom(roomId)
-                            navController.popBackStack()
+                            showDeleteConfirmation.value = true
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
                         modifier = Modifier.weight(1f)

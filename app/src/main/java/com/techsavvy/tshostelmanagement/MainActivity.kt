@@ -3,6 +3,11 @@ package com.techsavvy.tshostelmanagement
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.material3.Scaffold
+import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import com.techsavvy.tshostelmanagement.navigation.NavGraph
 import com.techsavvy.tshostelmanagement.ui.theme.TSHostelManagementTheme
@@ -12,11 +17,19 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Ensure the window is set to edge-to-edge if not already handled by theme
+        // WindowCompat.setDecorFitsSystemWindows(window, false)
+
         setContent {
             TSHostelManagementTheme {
                 val navController = rememberNavController()
-                NavGraph(navController = navController)
+                NavGraph(
+                    navController = navController,
+                    p = Modifier.statusBarsPadding()
+                )
             }
         }
     }
 }
+
+

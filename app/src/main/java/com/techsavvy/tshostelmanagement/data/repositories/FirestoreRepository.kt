@@ -21,6 +21,13 @@ class FirestoreRepository @Inject constructor(private val firestore: FirebaseFir
             .await()
     }
 
+    suspend fun updateUser(user: User) {
+        firestore.collection("users")
+            .document(user.uid)
+            .set(user, com.google.firebase.firestore.SetOptions.merge())
+            .await()
+    }
+
     suspend fun getUser(uid: String): User? {
         return try {
             Log.d("FirestoreRepository", "Fetching user with UID: $uid")
@@ -56,8 +63,19 @@ class FirestoreRepository @Inject constructor(private val firestore: FirebaseFir
                     close(error)
                     return@addSnapshotListener
                 }
-                snapshot?.let { trySend(it.toObjects()) }
+
+                snapshot?.let {
+                    val users = it.documents.mapNotNull { doc ->
+                        val user = doc.toObject(User::class.java)
+
+                        // Include if deleted is false OR field doesn't exist
+                        if (user?.deleted != true) user else null
+                    }
+
+                    trySend(users)
+                }
             }
+
         awaitClose { listener.remove() }
     }
 
@@ -76,7 +94,8 @@ class FirestoreRepository @Inject constructor(private val firestore: FirebaseFir
                 return@addSnapshotListener
             }
             snapshot?.let {
-                trySend(it.toObjects())
+                val users = it.toObjects(User::class.java).filter { user -> user.deleted != true }
+                trySend(users)
             }
         }
 
@@ -88,6 +107,7 @@ class FirestoreRepository @Inject constructor(private val firestore: FirebaseFir
     fun getAssignedStaffComplaints(staffUid: String): Flow<List<Complaint>> = callbackFlow {
         val listener = firestore.collection("complaints")
             .whereEqualTo("assignedStaffUid", staffUid)
+            .whereEqualTo("deleted", false)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     close(error)
@@ -113,7 +133,8 @@ class FirestoreRepository @Inject constructor(private val firestore: FirebaseFir
                 return@addSnapshotListener
             }
             snapshot?.let {
-                trySend(it.toObjects())
+                val users = it.toObjects(User::class.java).filter { user -> user.deleted != true }
+                trySend(users)
             }
         }
 
@@ -154,13 +175,93 @@ class FirestoreRepository @Inject constructor(private val firestore: FirebaseFir
                     close(error)
                     return@addSnapshotListener
                 }
-                snapshot?.let { trySend(it.toObjects()) }
+
+                snapshot?.let {
+                    val staff = it.documents.mapNotNull { doc ->
+                        val user = doc.toObject(User::class.java)
+
+                        // include if deleted is false OR not present
+                        if (user?.deleted != true) user else null
+                    }
+
+                    trySend(staff)
+                }
             }
+
         awaitClose { listener.remove() }
     }
 
     fun assignStaffTask(task: StaffTask) {
         firestore.collection("staff_tasks").add(task)
+    }
+
+    fun getAllRooms(): Flow<List<Room>> = callbackFlow {
+        val listener = firestore.collection("rooms")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+
+                snapshot?.let {
+                    val rooms = it.documents.mapNotNull { doc ->
+                        val room = doc.toObject(Room::class.java)
+
+                        // exclude only when explicitly deleted
+                        if (room?.deleted != true) room else null
+                    }
+
+                    trySend(rooms)
+                }
+            }
+
+        awaitClose { listener.remove() }
+    }
+
+    // Get a hosteler's room assignment details (room + floor + block names)
+    suspend fun getHostelerRoomInfo(uid: String): Triple<String, String, String>? {
+        return try {
+            val assignment = firestore.collection("hosteller_room")
+                .whereEqualTo("uid", uid)
+                .limit(1)
+                .get().await()
+                .toObjects<HostellerRoom>()
+                .firstOrNull() ?: return null
+
+            val room = firestore.collection("rooms").document(assignment.roomId)
+                .get().await().toObject<Room>()
+
+            if (room != null) {
+                val floor = firestore.collection("floors").document(room.floorId)
+                    .get().await().toObject<Floor>()
+                val block = firestore.collection("blocks").document(room.blockId)
+                    .get().await().toObject<Block>()
+                Triple(
+                    room.name.ifBlank { "Room ${room.roomNumber}" },
+                    floor?.name ?: "",
+                    block?.name ?: ""
+                )
+            } else null
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    // Get tasks assigned to a staff member
+    fun getStaffTasks(staffUid: String): Flow<List<StaffTask>> = callbackFlow {
+        val listener = firestore.collection("staff_tasks")
+            .whereEqualTo("staffUid", staffUid)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) { close(error); return@addSnapshotListener }
+                snapshot?.let { trySend(it.toObjects()) }
+            }
+        awaitClose { listener.remove() }
+    }
+
+    // Update staff task status
+    suspend fun updateTaskStatus(taskId: String, newStatus: String) {
+        firestore.collection("staff_tasks").document(taskId)
+            .update("status", newStatus).await()
     }
 
     fun getRooms(floorId: String): Flow<List<Room>> = callbackFlow {
@@ -187,8 +288,19 @@ class FirestoreRepository @Inject constructor(private val firestore: FirebaseFir
                     close(error)
                     return@addSnapshotListener
                 }
-                snapshot?.let { trySend(it.toObjects<Complaint>()) }
+
+                snapshot?.let {
+                    val complaints = it.documents.mapNotNull { doc ->
+                        val complaint = doc.toObject(Complaint::class.java)
+
+                        // include if not explicitly deleted
+                        if (complaint?.deleted != true) complaint else null
+                    }
+
+                    trySend(complaints)
+                }
             }
+
         awaitClose { listener.remove() }
     }
 
@@ -201,9 +313,10 @@ class FirestoreRepository @Inject constructor(private val firestore: FirebaseFir
     fun getAnnouncements(onlyActive: Boolean = false): Flow<List<Announcement>> = callbackFlow {
         var query = firestore.collection("announcements")
             .orderBy("createdAt", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .whereEqualTo("deleted", false)
 
         if (onlyActive) {
-            query = query.whereEqualTo("active", true)
+            query = query.whereEqualTo("isActive", true)
         }
 
         val listener = query.addSnapshotListener { snapshot, error ->
@@ -224,14 +337,17 @@ class FirestoreRepository @Inject constructor(private val firestore: FirebaseFir
         }
     }
 
+    // SOFT DELETE — marks deleted=true instead of removing the document
     suspend fun deleteAnnouncement(id: String) {
-        firestore.collection("announcements").document(id).delete().await()
+        firestore.collection("announcements").document(id)
+            .update("deleted", true).await()
     }
 
     // --- ADMIN COMPLAINT MANAGEMENT METHODS ---
 
     fun getAllComplaints(): Flow<List<Complaint>> = callbackFlow {
         val listener = firestore.collection("complaints")
+            .whereEqualTo("deleted", false)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     close(error)
@@ -249,16 +365,23 @@ class FirestoreRepository @Inject constructor(private val firestore: FirebaseFir
             .await()
     }
 
+    // SOFT DELETE — marks deleted=true instead of removing the document
     suspend fun deleteComplaint(complaintId: String): Result<Unit> {
         return try {
             firestore.collection("complaints")
                 .document(complaintId)
-                .delete()
+                .update("deleted", true)
                 .await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    // Soft delete a user (staff or hosteler)
+    suspend fun softDeleteUser(uid: String) {
+        firestore.collection("users").document(uid)
+            .update("deleted", true).await()
     }
 
     suspend fun assignStaff(complaintId: String, staffUid: String, staffName: String, staffPhone: String) {
@@ -275,5 +398,124 @@ class FirestoreRepository @Inject constructor(private val firestore: FirebaseFir
         } catch (e: Exception) {
             e.printStackTrace()
         }
+    }
+
+    // --- CHAT MODULE METHODS ---
+
+    fun getMessages(complaintId: String): Flow<List<ChatMessage>> = callbackFlow {
+        val listener = firestore.collection("chats")
+            .document(complaintId)
+            .collection("messages")
+            .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.ASCENDING)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) { close(error); return@addSnapshotListener }
+                snapshot?.let { trySend(it.toObjects<ChatMessage>()) }
+            }
+        awaitClose { listener.remove() }
+    }
+
+    suspend fun sendMessage(complaintId: String, message: ChatMessage) {
+        firestore.collection("chats")
+            .document(complaintId)
+            .collection("messages")
+            .add(message)
+            .await()
+    }
+
+    // --- MESS MENU MODULE METHODS ---
+
+    fun getMessMenu(): Flow<MessMenu> = callbackFlow {
+        val listener = firestore.collection("mess_menu")
+            .document("weekly")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) { close(error); return@addSnapshotListener }
+                val menu = snapshot?.toObject<MessMenu>() ?: MessMenu()
+                trySend(menu)
+            }
+        awaitClose { listener.remove() }
+    }
+
+    suspend fun saveMessMenu(menu: MessMenu) {
+        firestore.collection("mess_menu")
+            .document("weekly")
+            .set(menu)
+            .await()
+    }
+
+    // --- FEES MODULE METHODS ---
+
+    suspend fun saveFeeSetting(setting: FeeSetting) {
+        firestore.collection("fee_settings").add(setting).await()
+    }
+
+    fun getLatestFeeSetting(): Flow<FeeSetting?> = callbackFlow {
+        val listener = firestore.collection("fee_settings")
+            .orderBy("createdAt", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .limit(1)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) { close(error); return@addSnapshotListener }
+                val setting = snapshot?.documents?.firstOrNull()?.toObject<FeeSetting>()
+                trySend(setting)
+            }
+        awaitClose { listener.remove() }
+    }
+
+    suspend fun publishFeeToAllHostelers(setting: FeeSetting) {
+        val hostelers = firestore.collection("users")
+            .whereEqualTo("role", Role.HOSTELER)
+            .get().await().toObjects<User>()
+        val batch = firestore.batch()
+        hostelers.forEach { user ->
+            val record = FeeRecord(
+                hostelerUid = user.uid,
+                hostelerName = user.name,
+                semesterName = setting.semesterName,
+                amount = setting.amount,
+                status = "Unpaid",
+                dueDate = setting.dueDate
+            )
+            val docRef = firestore.collection("fee_records").document()
+            batch.set(docRef, record)
+        }
+        batch.commit().await()
+    }
+
+    fun getAllFeeRecords(): Flow<List<FeeRecord>> = callbackFlow {
+        val listener = firestore.collection("fee_records")
+            .orderBy("semesterName")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) { close(error); return@addSnapshotListener }
+                snapshot?.let { trySend(it.toObjects<FeeRecord>()) }
+            }
+        awaitClose { listener.remove() }
+    }
+
+    fun getFeeRecordsForHosteler(uid: String): Flow<List<FeeRecord>> = callbackFlow {
+        val listener = firestore.collection("fee_records")
+            .whereEqualTo("hostelerUid", uid)
+            .orderBy("dueDate", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) { close(error); return@addSnapshotListener }
+                snapshot?.let { trySend(it.toObjects<FeeRecord>()) }
+            }
+        awaitClose { listener.remove() }
+    }
+
+    suspend fun markFeeAsPaid(recordId: String) {
+        firestore.collection("fee_records")
+            .document(recordId)
+            .update("status", "Paid", "paidAt", System.currentTimeMillis())
+            .await()
+    }
+
+    // --- ABOUT SCREEN METHODS ---
+
+    fun getDevelopers(): Flow<List<Developer>> = callbackFlow {
+        val listener = firestore.collection("developers")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) { close(error); return@addSnapshotListener }
+                snapshot?.let { trySend(it.toObjects(Developer::class.java)) }
+            }
+        awaitClose { listener.remove() }
     }
 }

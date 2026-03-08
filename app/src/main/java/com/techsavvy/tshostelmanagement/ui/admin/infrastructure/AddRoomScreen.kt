@@ -11,6 +11,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -36,15 +37,45 @@ fun AddRoomScreen(
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        containerColor = Color(0xFF010413)
+        containerColor = Color(0xFF010413),
+        bottomBar = {
+            Surface(
+                color = Color(0xFF010413),
+                modifier = Modifier.fillMaxWidth().padding(16.dp)
+            ) {
+                Button(
+                    onClick = {
+                        selectedBlock?.let { block ->
+                            selectedFloor?.let { floor ->
+                                viewModel.addRoom(
+                                    name = roomName,
+                                    roomNumber = roomNumber.toIntOrNull() ?: 0,
+                                    capacity = roomCapacity.toIntOrNull() ?: 0,
+                                    floorId = floor.id,
+                                    blockId = block.id
+                                )
+                                navController.popBackStack()
+                            }
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    enabled = selectedFloor != null,
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4ADE80))
+                ) {
+                    Text(text = "Save Room", fontSize = 18.sp, color = Color.White)
+                }
+            }
+        }
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .padding(paddingValues)
                 .fillMaxSize()
-                .padding(16.dp)
+                .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
+            Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = "Add New Room",
                 color = Color.White,
@@ -129,7 +160,8 @@ fun AddRoomScreen(
                 value = roomNumber,
                 onValueChange = { roomNumber = it },
                 label = { Text("Room Number (e.g., 101)") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Number)
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -138,35 +170,11 @@ fun AddRoomScreen(
                 value = roomCapacity,
                 onValueChange = { roomCapacity = it },
                 label = { Text("Capacity") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Number)
             )
 
-            Spacer(modifier = Modifier.weight(1f))
-
-            Button(
-                onClick = {
-                    selectedBlock?.let { block ->
-                        selectedFloor?.let { floor ->
-                            viewModel.addRoom(
-                                name = roomName,
-                                roomNumber = roomNumber.toIntOrNull() ?: 0,
-                                capacity = roomCapacity.toIntOrNull() ?: 0,
-                                floorId = floor.id,
-                                blockId = block.id
-                            )
-                            navController.popBackStack()
-                        }
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(16.dp),
-                enabled = selectedFloor != null,
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4ADE80))
-            ) {
-                Text(text = "Save Room", fontSize = 18.sp)
-            }
+            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }

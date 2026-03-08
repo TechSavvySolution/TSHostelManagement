@@ -36,15 +36,6 @@ fun DetailsBlockScreen(
         StyledConfirmationDialog(
             onConfirm = {
                 if (blockId != null) {
-                    // Before deleting the block, we must delete all floors and rooms within it
-                    // to prevent orphaned data in your database.
-                    floors.forEach { floor ->
-                        val roomsOnThisFloor = rooms.filter { it.floorId == floor.id }
-                        roomsOnThisFloor.forEach { room ->
-                            viewModel.deleteItem("room", room.id)
-                        }
-                        viewModel.deleteItem("floor", floor.id)
-                    }
                     viewModel.deleteItem("block", blockId)
                     navController.popBackStack()
                 }

@@ -15,7 +15,8 @@ data class Complaint(
     val message: String = "",
     val status: String = "Pending",
     val createdAt: Long = System.currentTimeMillis(),
-    val assignedStaffUid: String? = null, // Added for staff filtering
+    val assignedStaffUid: String? = null,
     val assignedStaffName: String? = null,
-    val assignedStaffPhone: String? = null
+    val assignedStaffPhone: String? = null,
+    val deleted: Boolean = false   // SOFT DELETE flag
 )

@@ -2,6 +2,8 @@ package com.techsavvy.tshostelmanagement.ui.auth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.FirebaseApp
+import com.google.firebase.FirebaseOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.techsavvy.tshostelmanagement.data.models.User
 import com.techsavvy.tshostelmanagement.data.repositories.FirestoreRepository
@@ -92,6 +94,53 @@ class AuthViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 _authState.value = AuthState.Error(e.message ?: "Registration failed.")
+            }
+        }
+    }
+
+    // Creates a user without kicking the current Admin out by using a secondary Firebase app instance
+    fun adminRegisterUser(email: String, password: String, username: String, phone: String, role: Role = Role.HOSTELER) {
+        viewModelScope.launch {
+            _authState.value = AuthState.Loading
+            try {
+                // 1. Get default app options
+                val defaultApp = FirebaseApp.getInstance()
+                val options = defaultApp.options
+                
+                // 2. Initialize a secondary app manually
+                val secondaryAppName = "SecondaryApp_${System.currentTimeMillis()}"
+                val secondaryApp = FirebaseApp.initializeApp(defaultApp.applicationContext, options, secondaryAppName)
+                
+                // 3. Get Auth instance for the secondary app
+                val secondaryAuth = FirebaseAuth.getInstance(secondaryApp)
+                
+                // 4. Create the user on the secondary instance (doesn't affect primary auth state)
+                val result = secondaryAuth.createUserWithEmailAndPassword(email, password).await()
+                val firebaseUser = result.user
+                
+                if (firebaseUser != null) {
+                    // 5. Save user data to Firestore (using primary app's repository)
+                    val user = User(
+                        uid = firebaseUser.uid,
+                        name = username,
+                        email = email,
+                        pass = password,
+                        phone = phone,
+                        role = role,
+                        active = true
+                    )
+                    repository.saveUser(user)
+                    // Briefly flash authenticated to let the UI pop the backstack
+                    _authState.value = AuthState.Authenticated(user)
+                } else {
+                    _authState.value = AuthState.Error("Admin Registration failed: User could not be created.")
+                }
+                
+                // 6. Clean up: Delete the secondary app
+                secondaryApp.delete()
+
+            } catch (e: Exception) {
+                _authState.value = AuthState.Error(e.message ?: "Admin Registration failed.")
             }
         }
     }

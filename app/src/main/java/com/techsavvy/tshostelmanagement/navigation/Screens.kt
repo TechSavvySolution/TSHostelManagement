@@ -1,6 +1,7 @@
 package com.techsavvy.tshostelmanagement.navigation
 
 sealed class Screens(val route: String, val title: String = "") {
+    object Splash : Screens("splash", "Splash")
     object Login : Screens("login", "Login")
 
     object Admin {
@@ -17,6 +18,7 @@ sealed class Screens(val route: String, val title: String = "") {
         object Reports : Screens("admin_reports", "Reports")
         object Settings : Screens("admin_settings", "Settings")
         object Profile : Screens("admin_profile", "Profile")
+        object About : Screens("admin_about", "About Us")
         object Notifications : Screens("admin_notifications", "Notifications")
         object AddBlock : Screens("admin_add_block", "Add Block")
         object AddFloor : Screens("admin_add_floor", "Add Floor")
@@ -41,10 +43,17 @@ sealed class Screens(val route: String, val title: String = "") {
         }
         object AssignHosteller : Screens("admin_assign_hosteller", "Assign Hosteller")
         object AddUser : Screens("admin_add_user", "Add User")
+        object EditUser : Screens("admin_edit_user", "Edit User") {
+            fun createRoute(uid: String) = "admin_edit_user/$uid"
+        }
 
         object Staff : Screens("admin_staff", "Staff")
         object AddStaff : Screens("admin_add_staff", "Add Staff") // Optional alias for clarity
+        object EditStaff : Screens("admin_edit_staff", "Edit Staff") {
+            fun createRoute(uid: String) = "admin_edit_staff/$uid"
+        }
         object AssignTask : Screens("admin_assign_task", "Assign Task")
+        object MessMenu : Screens("admin_mess_menu", "Mess Menu")
     }
 
     object Auth {
@@ -70,20 +79,29 @@ sealed class Screens(val route: String, val title: String = "") {
             fun createRoute(complaintId: String) = "staff_complaint_details/$complaintId"
         }
         object Chat : Screens("staff_chat", "Chat") {
-            fun createRoute(hostelerId: String) = "staff_chat/$hostelerId"
+            fun createRoute(complaintId: String) = "staff_chat/$complaintId"
         }
         // ADD THIS:
         object Profile : Screens("staff_profile", "My Profile")
         object Settings : Screens("staff_settings", "Settings")
+        object About : Screens("staff_about", "About Us")
     }
 
     object Hosteler {
         object Announcements : Screens("hosteler_announcements", "Announcements")
         object Home : Screens("hosteler_home", "Hostel Home")
         object Complaints : Screens("hosteler_complaints", "My Complaints")
+        object ComplaintDetail : Screens("hosteler_complaint_detail", "Complaint Detail") {
+            fun createRoute(complaintId: String) = "hosteler_complaint_detail/$complaintId"
+        }
+        object Chat : Screens("hosteler_chat", "Chat") {
+            fun createRoute(complaintId: String) = "hosteler_chat/$complaintId"
+        }
         object RaiseComplaint : Screens("raise_complaint", "Raise Complaint")
         object Profile : Screens("hosteler_profile", "My Profile")
         object Settings : Screens("hosteler_settings", "Settings")
+        object Fees : Screens("hosteler_fees", "My Fees")
+        object About : Screens("hosteler_about", "About Us")
     }
 }
 

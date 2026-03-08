@@ -44,6 +44,26 @@ fun StaffComplaintDetailsScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
+        },
+        bottomBar = {
+            if (complaint != null && complaint.status != "Resolved") {
+                Surface(
+                    color = Color(0xFF010413),
+                    modifier = Modifier.fillMaxWidth().padding(16.dp)
+                ) {
+                    Button(
+                        onClick = {
+                            viewModel.updateStatus(complaint.id, "Resolved")
+                            navController.popBackStack()
+                        },
+                        modifier = Modifier.fillMaxWidth().height(56.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4ADE80)),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Text("Mark as Resolved", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    }
+                }
+            }
         }
     ) { padding ->
         if (complaint == null) {
@@ -76,7 +96,7 @@ fun StaffComplaintDetailsScreen(
                         }
                         Button(
                             onClick = {
-                                navController.navigate(Screens.Staff.Chat.createRoute(complaint.userId))
+                                navController.navigate(Screens.Staff.Chat.createRoute(complaint.id))
                             },
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF22D3EE)),
                             shape = RoundedCornerShape(12.dp)
@@ -121,23 +141,7 @@ fun StaffComplaintDetailsScreen(
                     }
                 }
 
-                Spacer(Modifier.weight(1f))
                 Spacer(Modifier.height(32.dp))
-
-                // Action Button: Mark as Resolved
-                if (complaint.status != "Resolved") {
-                    Button(
-                        onClick = {
-                            viewModel.updateStatus(complaint.id, "Resolved")
-                            navController.popBackStack()
-                        },
-                        modifier = Modifier.fillMaxWidth().height(56.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4ADE80)),
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
-                        Text("Mark as Resolved", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                    }
-                }
             }
         }
     }

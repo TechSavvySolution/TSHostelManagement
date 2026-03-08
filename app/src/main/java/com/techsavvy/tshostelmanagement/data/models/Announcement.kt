@@ -9,5 +9,6 @@ data class Announcement(
     val imageUrl: String? = null,
     val order: Int = 0,
     val isActive: Boolean = true,
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
+    val deleted: Boolean = false   // SOFT DELETE flag
 )

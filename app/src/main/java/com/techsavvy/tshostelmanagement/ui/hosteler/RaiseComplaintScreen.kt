@@ -1,14 +1,18 @@
 package com.techsavvy.tshostelmanagement.ui.hosteler
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import android.widget.Toast
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -22,6 +26,7 @@ fun RaiseComplaintScreen(
 ) {
     var subject by remember { mutableStateOf("") }
     var message by remember { mutableStateOf("") }
+    val context = LocalContext.current
 
     Scaffold(
         containerColor = Color(0xFF010413),
@@ -35,9 +40,36 @@ fun RaiseComplaintScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
+        },
+        bottomBar = {
+            Surface(
+                color = Color(0xFF010413),
+                modifier = Modifier.fillMaxWidth().padding(16.dp)
+            ) {
+                Button(
+                    onClick = {
+                        if (subject.isBlank() || message.isBlank()) {
+                            Toast.makeText(context, "Subject and Message cannot be empty", Toast.LENGTH_SHORT).show()
+                        } else {
+                            viewModel.submitComplaint(subject, message)
+                            navController.popBackStack()
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF87171))
+                ) {
+                    Text("Register Complaint", color = Color.Black, fontWeight = FontWeight.Bold)
+                }
+            }
         }
     ) { paddingValues ->
-        Column(modifier = Modifier.padding(paddingValues).padding(16.dp).fillMaxSize()) {
+        Column(modifier = Modifier
+            .padding(paddingValues)
+            .padding(16.dp)
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+        ) {
             OutlinedTextField(
                 value = subject,
                 onValueChange = { subject = it },
@@ -66,18 +98,6 @@ fun RaiseComplaintScreen(
                 )
             )
             Spacer(modifier = Modifier.height(32.dp))
-            Button(
-                onClick = {
-                    viewModel.submitComplaint(subject, message)
-                    navController.popBackStack()
-                },
-                modifier = Modifier.fillMaxWidth().height(56.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF87171)),
-                enabled = subject.isNotBlank() && message.isNotBlank()
-            ) {
-                Text("Register Complaint", color = Color.Black, fontWeight = FontWeight.Bold)
-            }
         }
     }
 }

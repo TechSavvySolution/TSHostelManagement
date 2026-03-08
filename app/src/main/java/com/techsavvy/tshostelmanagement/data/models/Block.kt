@@ -6,4 +6,5 @@ data class Block(
     @DocumentId val id: String = "",
     val name: String = "",
     val alias: String? = null,
+    val deleted: Boolean = false   // SOFT DELETE flag
 )

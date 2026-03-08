@@ -13,7 +13,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import android.widget.Toast
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -30,6 +32,8 @@ fun AddEditAnnouncementScreen(
     LaunchedEffect(announcementId) {
         announcementId?.let { viewModel.loadAnnouncement(it) }
     }
+    
+    val context = LocalContext.current
 
     Scaffold(
         containerColor = Color(0xFF010413),
@@ -74,6 +78,13 @@ fun AddEditAnnouncementScreen(
                 modifier = Modifier.height(150.dp)
             )
 
+            // Image URL Input
+            AnnouncementTextField(
+                value = viewModel.imageUrl,
+                onValueChange = { viewModel.imageUrl = it },
+                label = "Image URL (Optional)"
+            )
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -111,16 +122,19 @@ fun AddEditAnnouncementScreen(
             // Save Button
             Button(
                 onClick = {
-                    viewModel.saveAnnouncement(announcementId) {
-                        navController.popBackStack()
+                    if (viewModel.title.isBlank() || viewModel.description.isBlank()) {
+                        Toast.makeText(context, "Title and Description are required!", Toast.LENGTH_SHORT).show()
+                    } else {
+                        viewModel.saveAnnouncement(announcementId) {
+                            navController.popBackStack()
+                        }
                     }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
                 shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4ADE80)),
-                enabled = viewModel.title.isNotBlank() && viewModel.description.isNotBlank()
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4ADE80))
             ) {
                 Icon(Icons.Default.Check, null, tint = Color.Black)
                 Spacer(Modifier.width(8.dp))

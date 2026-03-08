@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -24,9 +25,15 @@ class StaffViewModel @Inject constructor(
     }
 
     private fun fetchStaff() {
-        // Uses the getStaff() method added to your repository
         repository.getStaff().onEach {
             _staffList.value = it
         }.launchIn(viewModelScope)
     }
-}
+
+    // SOFT DELETE — marks user as deleted without physically removing the document
+    fun softDeleteStaff(uid: String) {
+        viewModelScope.launch {
+            repository.softDeleteUser(uid)
+        }
+    }
+}

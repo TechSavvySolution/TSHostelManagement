@@ -2,8 +2,10 @@ package com.techsavvy.tshostelmanagement.ui.staff.profile
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.rounded.Check
@@ -41,12 +43,45 @@ fun StaffProfileScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
+        },
+        bottomBar = {
+            if (user != null) {
+                Surface(
+                    color = Color(0xFF010413),
+                    modifier = Modifier.fillMaxWidth().padding(16.dp)
+                ) {
+                    Button(
+                        onClick = {
+                            if (viewModel.isEditMode) viewModel.saveProfile()
+                            else viewModel.toggleEditMode()
+                        },
+                        modifier = Modifier.fillMaxWidth().height(56.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (viewModel.isEditMode) Color(0xFF4ADE80) else Color(0xFF22D3EE)
+                        ),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Icon(
+                            imageVector = if (viewModel.isEditMode) Icons.Rounded.Check else Icons.Rounded.Edit,
+                            contentDescription = null,
+                            tint = Color.Black
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = if (viewModel.isEditMode) "Save Changes" else "Edit Profile",
+                            color = Color.Black,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
         }
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .padding(paddingValues)
                 .fillMaxSize()
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -96,30 +131,6 @@ fun StaffProfileScreen(
                 }
 
                 Spacer(modifier = Modifier.height(48.dp))
-
-                Button(
-                    onClick = {
-                        if (viewModel.isEditMode) viewModel.saveProfile()
-                        else viewModel.toggleEditMode()
-                    },
-                    modifier = Modifier.fillMaxWidth().height(56.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (viewModel.isEditMode) Color(0xFF4ADE80) else Color(0xFF22D3EE)
-                    ),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Icon(
-                        imageVector = if (viewModel.isEditMode) Icons.Rounded.Check else Icons.Rounded.Edit,
-                        contentDescription = null,
-                        tint = Color.Black
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = if (viewModel.isEditMode) "Save Changes" else "Edit Profile",
-                        color = Color.Black,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
             } else {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = Color(0xFF22D3EE))

@@ -67,30 +67,16 @@ fun SettingsScreen(
                     SettingItem(
                         icon = Icons.Rounded.WbSunny,
                         title = "Dark Mode",
-                        subtitle = "Toggle between light and dark themes",
+                        subtitle = "Dark Glassmorphism is enforced",
                         trailingContent = {
                             Switch(
-                                checked = isDarkMode,
-                                onCheckedChange = { isDarkMode = it },
+                                checked = true,
+                                onCheckedChange = { },
+                                enabled = false,
                                 colors = SwitchDefaults.colors(
-                                    checkedThumbColor = Color.White,
-                                    checkedTrackColor = Color(0xFF4ADE80)
+                                    disabledCheckedThumbColor = Color.LightGray,
+                                    disabledCheckedTrackColor = Color(0xFF4ADE80).copy(alpha = 0.5f)
                                 )
-                            )
-                        }
-                    )
-                    HorizontalDivider(color = Color.White.copy(alpha = 0.1f), thickness = 1.dp, modifier = Modifier.padding(horizontal = 16.dp))
-                    SettingItem(
-                        icon = Icons.Rounded.Palette,
-                        title = "Theme",
-                        subtitle = "Customize app theme colors",
-                        onClick = { /* TODO: Navigate to theme screen */ },
-                        trailingContent = {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
-                                contentDescription = "Navigate",
-                                tint = Color.White.copy(alpha = 0.6f),
-                                modifier = Modifier.size(16.dp)
                             )
                         }
                     )
@@ -101,37 +87,33 @@ fun SettingsScreen(
 
             // Account Section
             item {
+                var notificationsEnabled by remember { mutableStateOf(true) }
                 SettingsCategory(title = "Account & Other")
                 GlassmorphicCard {
                     SettingItem(
                         icon = Icons.Rounded.Notifications,
                         title = "Notifications",
                         subtitle = "Manage notification preferences",
-                        onClick = { /* TODO: Navigate to notification settings */ },
                         trailingContent = {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
-                                contentDescription = "Navigate",
-                                tint = Color.White.copy(alpha = 0.6f),
-                                modifier = Modifier.size(16.dp)
+                            Switch(
+                                checked = notificationsEnabled,
+                                onCheckedChange = { notificationsEnabled = it },
+                                colors = SwitchDefaults.colors(
+                                    checkedThumbColor = Color.White,
+                                    checkedTrackColor = Color(0xFF4ADE80)
+                                )
                             )
                         }
                     )
                     HorizontalDivider(color = Color.White.copy(alpha = 0.1f), thickness = 1.dp, modifier = Modifier.padding(horizontal = 16.dp))
+                    
                     SettingItem(
-                        icon = Icons.Rounded.Security,
-                        title = "Privacy & Security",
-                        subtitle = "Manage your data and security",
-                        onClick = { /* TODO: Navigate to privacy screen */ },
-                        trailingContent = {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
-                                contentDescription = "Navigate",
-                                tint = Color.White.copy(alpha = 0.6f),
-                                modifier = Modifier.size(16.dp)
-                            )
-                        }
+                        icon = Icons.Rounded.Info,
+                        title = "About Application",
+                        subtitle = "Developed by Tech Savvy Solution",
+                        onClick = { navController.navigate(Screens.Admin.About.route) }
                     )
+
                     HorizontalDivider(color = Color.White.copy(alpha = 0.1f), thickness = 1.dp, modifier = Modifier.padding(horizontal = 16.dp))
 
                     // --- LOGOUT LOGIC ---

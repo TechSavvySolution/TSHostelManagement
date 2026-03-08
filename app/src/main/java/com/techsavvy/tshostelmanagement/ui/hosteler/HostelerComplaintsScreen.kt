@@ -62,7 +62,7 @@ fun HostelerComplaintsScreen(
                 onDismissRequest = { complaintToDelete = null },
                 containerColor = Color(0xFF0F172A),
                 title = { Text("Delete Complaint", color = Color.White) },
-                text = { Text("Are you sure you want to delete this complaint? This action cannot be undone.", color = Color.Gray) },
+                text = { Text("Are you sure you want to remove this complaint? It will be soft-deleted (hidden from view, data preserved).", color = Color.Gray) },
                 confirmButton = {
                     TextButton(
                         onClick = {
@@ -90,7 +90,10 @@ fun HostelerComplaintsScreen(
                 items(complaints) { complaint ->
                     ComplaintItem(
                         complaint = complaint,
-                        onDeleteClick = { complaintToDelete = complaint }
+                        onDeleteClick = { complaintToDelete = complaint },
+                        onCardClick = {
+                            navController.navigate(Screens.Hosteler.ComplaintDetail.createRoute(complaint.id))
+                        }
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                 }
@@ -100,8 +103,9 @@ fun HostelerComplaintsScreen(
 }
 
 @Composable
-fun ComplaintItem(complaint: Complaint, onDeleteClick: () -> Unit) {
+fun ComplaintItem(complaint: Complaint, onDeleteClick: () -> Unit, onCardClick: () -> Unit = {}) {
     Card(
+        onClick = onCardClick,
         colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.05f)),
         shape = RoundedCornerShape(16.dp)
     ) {
