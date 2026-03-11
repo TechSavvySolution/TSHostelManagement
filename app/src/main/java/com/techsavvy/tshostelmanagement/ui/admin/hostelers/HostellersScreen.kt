@@ -94,11 +94,11 @@ fun HostellersScreen(
                 ) {
                     DropdownMenuItem(
                         text = { Text("Add User", color = Color.White) },
-                        onClick = { showMenu = false; navController.navigate("Screens.Admin.AddUser.route") }
+                        onClick = { showMenu = false; navController.navigate(Screens.Admin.AddUser.route) }
                     )
                     DropdownMenuItem(
                         text = { Text("Assign Hosteller", color = Color.White) },
-                        onClick = { showMenu = false; navController.navigate("Screens.Admin.AssignHosteller.route") }
+                        onClick = { showMenu = false; navController.navigate(Screens.Admin.AssignHosteller.route) }
                     )
                 }
             }

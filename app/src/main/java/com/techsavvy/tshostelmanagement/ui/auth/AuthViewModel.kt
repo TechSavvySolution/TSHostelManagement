@@ -2,8 +2,6 @@ package com.techsavvy.tshostelmanagement.ui.auth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.FirebaseApp
-import com.google.firebase.FirebaseOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.techsavvy.tshostelmanagement.data.models.User
 import com.techsavvy.tshostelmanagement.data.repositories.FirestoreRepository
@@ -23,15 +21,16 @@ class AuthViewModel @Inject constructor(
 
     private val _authState = MutableStateFlow<AuthState>(AuthState.Initial)
     val authState = _authState.asStateFlow()
-    private val _isLoading = MutableStateFlow<Boolean>(false);
-    val isLoading = _isLoading
+
+    private val _isLoading = MutableStateFlow<Boolean>(false)
+    val isLoading = _isLoading.asStateFlow()
 
 
     init {
         checkUserExists()
     }
 
-    fun checkUserExists(){
+    fun checkUserExists() {
         viewModelScope.launch {
             _isLoading.value = true
             val uid = auth.uid
@@ -98,47 +97,32 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    // Creates a user without kicking the current Admin out by using a secondary Firebase app instance
-    fun adminRegisterUser(email: String, password: String, username: String, phone: String, role: Role = Role.HOSTELER) {
+    // --- Added function to fix the Unresolved Reference error ---
+    fun adminRegisterUser(email: String, password: String, username: String, phone: String) {
         viewModelScope.launch {
             _authState.value = AuthState.Loading
             try {
-                // 1. Get default app options
-                val defaultApp = FirebaseApp.getInstance()
-                val options = defaultApp.options
-                
-                // 2. Initialize a secondary app manually
-                val secondaryAppName = "SecondaryApp_${System.currentTimeMillis()}"
-                val secondaryApp = FirebaseApp.initializeApp(defaultApp.applicationContext, options, secondaryAppName)
-                
-                // 3. Get Auth instance for the secondary app
-                val secondaryAuth = FirebaseAuth.getInstance(secondaryApp)
-                
-                // 4. Create the user on the secondary instance (doesn't affect primary auth state)
-                val result = secondaryAuth.createUserWithEmailAndPassword(email, password).await()
+                val result = auth.createUserWithEmailAndPassword(email, password).await()
                 val firebaseUser = result.user
-                
-                if (firebaseUser != null) {
-                    // 5. Save user data to Firestore (using primary app's repository)
+                firebaseUser?.let {
                     val user = User(
-                        uid = firebaseUser.uid,
+                        uid = it.uid,
                         name = username,
                         email = email,
                         pass = password,
                         phone = phone,
-                        role = role,
+                        role = Role.HOSTELER, // Admins usually register Hostelers
                         active = true
                     )
                     repository.saveUser(user)
-                    // Briefly flash authenticated to let the UI pop the backstack
-                    _authState.value = AuthState.Authenticated(user)
-                } else {
-                    _authState.value = AuthState.Error("Admin Registration failed: User could not be created.")
-                }
-                
-                // 6. Clean up: Delete the secondary app
-                secondaryApp.delete()
 
+                    // Note: Successfully created the user.
+                    // Depending on your UI, you might want a different state than Authenticated
+                    // because Firebase automatically logs in the newly created user.
+                    _authState.value = AuthState.Authenticated(user)
+                } ?: run {
+                    _authState.value = AuthState.Error("Admin Registration failed: User not created.")
+                }
             } catch (e: Exception) {
                 _authState.value = AuthState.Error(e.message ?: "Admin Registration failed.")
             }

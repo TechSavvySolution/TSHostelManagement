@@ -316,7 +316,7 @@ class FirestoreRepository @Inject constructor(private val firestore: FirebaseFir
             .whereEqualTo("deleted", false)
 
         if (onlyActive) {
-            query = query.whereEqualTo("isActive", true)
+            query = query.whereEqualTo("active", true)
         }
 
         val listener = query.addSnapshotListener { snapshot, error ->
