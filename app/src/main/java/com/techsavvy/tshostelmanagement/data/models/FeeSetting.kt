@@ -6,6 +6,8 @@ data class FeeSetting(
     @DocumentId val id: String = "",
     val semesterName: String = "",
     val amount: Double = 0.0,
+    val upiId: String = "",          // UPI VPA for receiving payments (e.g. abc@oksbi)
+    val startDate: Long = 0L,
     val dueDate: Long = 0L,
     val createdAt: Long = System.currentTimeMillis()
 )

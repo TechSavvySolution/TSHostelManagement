@@ -20,7 +20,9 @@ data class DashboardStats(
     val inProgressComplaints: Int = 0,
     val totalFeeRecords: Int = 0,
     val paidFeeRecords: Int = 0,
-    val unpaidFeeRecords: Int = 0
+    val unpaidFeeRecords: Int = 0,
+    val razorpayPaidRecords: Int = 0,
+    val manualPaidRecords: Int = 0
 )
 
 @HiltViewModel
@@ -68,7 +70,9 @@ class AdminHomeViewModel @Inject constructor(
             _stats.value = _stats.value.copy(
                 totalFeeRecords = list.size,
                 paidFeeRecords = list.count { it.status == "Paid" },
-                unpaidFeeRecords = list.count { it.status == "Unpaid" }
+                unpaidFeeRecords = list.count { it.status == "Unpaid" },
+                razorpayPaidRecords = list.count { it.status == "Paid" && it.paymentMethod == "UPI" },
+                manualPaidRecords = list.count { it.status == "Paid" && it.paymentMethod != "UPI" }
             )
         }.launchIn(viewModelScope)
     }

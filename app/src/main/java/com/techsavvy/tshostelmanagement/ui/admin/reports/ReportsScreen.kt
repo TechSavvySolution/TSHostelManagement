@@ -23,6 +23,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import android.content.Context
 import android.content.Intent
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -78,27 +80,66 @@ fun ReportsScreen(
             }
         }
     ) { paddingValues ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .padding(paddingValues)
                 .fillMaxSize()
                 .padding(horizontal = 16.dp)
         ) {
-            Text(
-                text = "Live Hostel Analytics",
-                color = Color.White.copy(alpha = 0.8f),
-                fontSize = 16.sp,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
+            // Title
+            item {
+                Text(
+                    text = "Live Hostel Analytics",
+                    color = Color.White.copy(alpha = 0.8f),
+                    fontSize = 16.sp,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+            }
 
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                contentPadding = PaddingValues(bottom = 24.dp)
-            ) {
-                items(reportStats) { stat ->
-                    ReportCard(stat)
+            // --- 💳 Payments Overview ---
+            item {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(Color.White.copy(alpha = 0.04f))
+                        .border(
+                            1.dp,
+                            Brush.linearGradient(listOf(Color(0xFF22D3EE).copy(0.4f), Color(0xFF6366F1).copy(0.4f))),
+                            RoundedCornerShape(20.dp)
+                        )
+                        .padding(16.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Rounded.Payment, null, tint = Color(0xFF22D3EE), modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text("Payments Overview", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                    }
+                    Spacer(Modifier.height(14.dp))
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        PaymentMethodStat(label = "UPI", count = stats.razorpayPaidRecords, color = Color(0xFF4ADE80), emoji = "📲")
+                        PaymentMethodStat(label = "Manual", count = stats.manualPaidRecords, color = Color(0xFF22D3EE), emoji = "✅")
+                        PaymentMethodStat(label = "Unpaid", count = stats.unpaidFeeRecords, color = Color(0xFFF87171), emoji = "⏳")
+                    }
+                }
+                Spacer(Modifier.height(16.dp))
+            }
+
+            // Analytics Grid
+            item {
+                androidx.compose.foundation.lazy.grid.LazyVerticalGrid(
+                    columns = androidx.compose.foundation.lazy.grid.GridCells.Fixed(2),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    contentPadding = PaddingValues(bottom = 24.dp),
+                    modifier = Modifier.height(((reportStats.size / 2 + reportStats.size % 2) * 160).dp)
+                ) {
+                    items(reportStats) { stat ->
+                        ReportCard(stat)
+                    }
                 }
             }
         }
@@ -165,7 +206,9 @@ fun exportToCsv(context: Context, stats: com.techsavvy.tshostelmanagement.ui.adm
     csvData.append("Resolved Complaints,${stats.resolvedComplaints}\n")
     csvData.append("Available Rooms,${stats.availableRooms}\n")
     csvData.append("Occupied Rooms,${stats.totalRooms - stats.availableRooms}\n")
-    csvData.append("Paid Fees,${stats.paidFeeRecords}\n")
+    csvData.append("Paid Fees (Total),${stats.paidFeeRecords}\n")
+    csvData.append("Paid via Razorpay,${stats.razorpayPaidRecords}\n")
+    csvData.append("Paid Manually,${stats.manualPaidRecords}\n")
     csvData.append("Unpaid Fees,${stats.unpaidFeeRecords}\n")
 
     val intent = Intent(Intent.ACTION_SEND).apply {
@@ -174,4 +217,24 @@ fun exportToCsv(context: Context, stats: com.techsavvy.tshostelmanagement.ui.adm
         putExtra(Intent.EXTRA_TEXT, csvData.toString())
     }
     context.startActivity(Intent.createChooser(intent, "Export Report..."))
+}
+
+@Composable
+fun PaymentMethodStat(label: String, count: Int, color: Color, emoji: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(emoji, fontSize = 22.sp)
+        Spacer(Modifier.height(4.dp))
+        Text(
+            text = count.toString(),
+            color = color,
+            fontSize = 22.sp,
+            fontWeight = FontWeight.ExtraBold
+        )
+        Text(
+            text = label,
+            color = Color.Gray,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Medium
+        )
+    }
 }

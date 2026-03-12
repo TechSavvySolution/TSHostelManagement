@@ -8,7 +8,11 @@ data class FeeRecord(
     val hostelerName: String = "",
     val semesterName: String = "",
     val amount: Double = 0.0,
-    val status: String = "Unpaid",   // "Paid" | "Unpaid"
+    val status: String = "Unpaid",          // "Paid" | "Unpaid"
     val paidAt: Long? = null,
-    val dueDate: Long = 0L
+    val startDate: Long = 0L,
+    val dueDate: Long = 0L,
+    val upiId: String = "",                 // UPI VPA to pay to
+    val paymentMethod: String = "Manual",   // "UPI" | "Manual"
+    val transactionId: String = ""          // e.g. DEMO-1710245632 for UPI
 )

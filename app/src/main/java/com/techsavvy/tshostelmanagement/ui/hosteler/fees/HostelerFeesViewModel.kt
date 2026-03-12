@@ -41,4 +41,14 @@ class HostelerFeesViewModel @Inject constructor(
             }
         }
     }
+
+    fun markFeeAsPaidViaUpi(recordId: String, transactionId: String) {
+        viewModelScope.launch {
+            try {
+                repository.markFeeAsPaidViaUpi(recordId, transactionId)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
 }

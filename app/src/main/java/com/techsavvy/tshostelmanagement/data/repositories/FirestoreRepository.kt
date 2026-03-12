@@ -499,7 +499,9 @@ class FirestoreRepository @Inject constructor(private val firestore: FirebaseFir
                 semesterName = setting.semesterName,
                 amount = setting.amount,
                 status = "Unpaid",
-                dueDate = setting.dueDate
+                startDate = setting.startDate,
+                dueDate = setting.dueDate,
+                upiId = setting.upiId
             )
             val docRef = firestore.collection("fee_records").document()
             batch.set(docRef, record)
@@ -531,8 +533,47 @@ class FirestoreRepository @Inject constructor(private val firestore: FirebaseFir
     suspend fun markFeeAsPaid(recordId: String) {
         firestore.collection("fee_records")
             .document(recordId)
-            .update("status", "Paid", "paidAt", System.currentTimeMillis())
+            .update("status", "Paid", "paidAt", System.currentTimeMillis(), "paymentMethod", "Manual")
             .await()
+    }
+
+    suspend fun markFeeAsPaidViaUpi(recordId: String, transactionId: String) {
+        firestore.collection("fee_records")
+            .document(recordId)
+            .update(
+                "status", "Paid",
+                "paidAt", System.currentTimeMillis(),
+                "paymentMethod", "UPI",
+                "transactionId", transactionId
+            )
+            .await()
+    }
+
+    /** Delete a single fee record permanently. */
+    suspend fun deleteFeeRecord(recordId: String) {
+        firestore.collection("fee_records").document(recordId).delete().await()
+    }
+
+    /** Bulk-delete all fee records whose IDs are in the provided list. Uses batched writes. */
+    suspend fun deleteSelectedFeeRecords(recordIds: List<String>) {
+        if (recordIds.isEmpty()) return
+        // Firestore batch supports max 500 writes; chunk for safety
+        recordIds.chunked(499).forEach { chunk ->
+            val batch = firestore.batch()
+            chunk.forEach { id ->
+                batch.delete(firestore.collection("fee_records").document(id))
+            }
+            batch.commit().await()
+        }
+    }
+
+    /** Bulk-delete all fee records belonging to a specific semester. */
+    suspend fun deleteAllFeeRecordsForSemester(semesterName: String) {
+        val docs = firestore.collection("fee_records")
+            .whereEqualTo("semesterName", semesterName)
+            .get().await()
+        val ids = docs.documents.map { it.id }
+        deleteSelectedFeeRecords(ids)
     }
 
     // --- ABOUT SCREEN METHODS ---
