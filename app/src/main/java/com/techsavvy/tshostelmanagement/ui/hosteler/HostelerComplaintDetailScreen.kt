@@ -1,14 +1,20 @@
 package com.techsavvy.tshostelmanagement.ui.hosteler
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Chat
+import androidx.compose.material.icons.rounded.PlayCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -16,11 +22,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.techsavvy.tshostelmanagement.data.models.Complaint
 import com.techsavvy.tshostelmanagement.navigation.Screens
 
@@ -50,6 +60,7 @@ fun HostelerComplaintDetailScreen(
             )
         }
     ) { padding ->
+        val context = LocalContext.current
 
         if (complaint == null) {
             Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
@@ -91,6 +102,77 @@ fun HostelerComplaintDetailScreen(
                     DetailCard(title = "Assigned Staff", color = Color(0xFF4ADE80)) {
                         DetailRow(label = "Name", value = complaint.assignedStaffName)
                         DetailRow(label = "Phone", value = complaint.assignedStaffPhone ?: "-")
+                    }
+                }
+
+                // Attachments section (only if complaint has media)
+                if (complaint.mediaUrls.isNotEmpty()) {
+                    DetailCard(
+                        title = "Attachments",
+                        color = Color(0xFFF59E0B)
+                    ) {
+                        var fullscreenUrl by remember { mutableStateOf<String?>(null) }
+
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            items(complaint.mediaUrls) { url ->
+                                val isVideo = url.contains("/video") ||
+                                    url.endsWith(".mp4", true) ||
+                                    url.endsWith(".mov", true) ||
+                                    url.endsWith(".avi", true) ||
+                                    url.endsWith(".mkv", true)
+
+                                if (isVideo) {
+                                    // Video thumbnail card → tap to play
+                                    Box(
+                                        modifier = Modifier
+                                            .size(90.dp)
+                                            .clip(RoundedCornerShape(10.dp))
+                                            .background(Color.White.copy(alpha = 0.08f))
+                                            .clickable {
+                                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
+                                                    setDataAndType(Uri.parse(url), "video/*")
+                                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                                }
+                                                context.startActivity(intent)
+                                            },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            Icons.Rounded.PlayCircle,
+                                            contentDescription = "Play video",
+                                            tint = Color(0xFF22D3EE),
+                                            modifier = Modifier.size(40.dp)
+                                        )
+                                    }
+                                } else {
+                                    // Image thumbnail → tap for fullscreen
+                                    AsyncImage(
+                                        model = url,
+                                        contentDescription = "Attachment",
+                                        modifier = Modifier
+                                            .size(90.dp)
+                                            .clip(RoundedCornerShape(10.dp))
+                                            .clickable { fullscreenUrl = url },
+                                        contentScale = ContentScale.Crop
+                                    )
+                                }
+                            }
+                        }
+
+                        // Fullscreen image dialog
+                        fullscreenUrl?.let { url ->
+                            Dialog(onDismissRequest = { fullscreenUrl = null }) {
+                                AsyncImage(
+                                    model = url,
+                                    contentDescription = "Full image",
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .clickable { fullscreenUrl = null },
+                                    contentScale = ContentScale.FillWidth
+                                )
+                            }
+                        }
                     }
                 }
 

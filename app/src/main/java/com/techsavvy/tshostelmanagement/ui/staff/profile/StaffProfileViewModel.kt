@@ -1,4 +1,4 @@
-package com.techsavvy.tshostelmanagement.ui.hosteler.profile
+package com.techsavvy.tshostelmanagement.ui.staff.profile
 
 import android.content.Context
 import android.net.Uri
@@ -19,7 +19,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class HostelerProfileViewModel @Inject constructor(
+class StaffProfileViewModel @Inject constructor(
     private val auth: FirebaseAuth,
     private val repository: FirestoreRepository,
     @ApplicationContext private val context: Context
@@ -34,12 +34,6 @@ class HostelerProfileViewModel @Inject constructor(
     var editName by mutableStateOf("")
     var editPhone by mutableStateOf("")
 
-    // Room info
-    var roomName by mutableStateOf("")
-        private set
-    var floorName by mutableStateOf("")
-        private set
-
     private val _isUploading = MutableStateFlow(false)
     val isUploading = _isUploading.asStateFlow()
 
@@ -47,23 +41,16 @@ class HostelerProfileViewModel @Inject constructor(
     val uploadError = _uploadError.asStateFlow()
 
     init {
-        fetchUserProfile()
+        fetchProfile()
     }
 
-    private fun fetchUserProfile() {
+    private fun fetchProfile() {
         val uid = auth.currentUser?.uid ?: return
         viewModelScope.launch {
             val user = repository.getUser(uid)
             userData = user
             editName = user?.name ?: ""
             editPhone = user?.phone ?: ""
-
-            // Fetch room info
-            val info = repository.getHostelerRoomInfo(uid)
-            if (info != null) {
-                roomName = info.first
-                floorName = info.second
-            }
         }
     }
 

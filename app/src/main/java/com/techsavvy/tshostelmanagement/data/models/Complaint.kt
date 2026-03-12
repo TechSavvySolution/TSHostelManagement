@@ -18,5 +18,6 @@ data class Complaint(
     val assignedStaffUid: String? = null,
     val assignedStaffName: String? = null,
     val assignedStaffPhone: String? = null,
-    val deleted: Boolean = false   // SOFT DELETE flag
+    val deleted: Boolean = false,  // SOFT DELETE flag
+    val mediaUrls: List<String> = emptyList()
 )

@@ -28,6 +28,33 @@ class FirestoreRepository @Inject constructor(private val firestore: FirebaseFir
             .await()
     }
 
+    suspend fun updateProfilePhoto(uid: String, url: String) {
+        firestore.collection("users")
+            .document(uid)
+            .update("profilePhotoUrl", url)
+            .await()
+    }
+
+    suspend fun getRoommatesForRoom(roomId: String): List<User> {
+        return try {
+            val assignments = firestore.collection("hosteller_room")
+                .whereEqualTo("roomId", roomId)
+                .get().await()
+                .toObjects<HostellerRoom>()
+            assignments.mapNotNull { assignment ->
+                val user = firestore.collection("users")
+                    .document(assignment.uid)
+                    .get().await()
+                    .toObject<User>()
+                if (user?.deleted != true) user else null
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
+        }
+    }
+
+
     suspend fun getUser(uid: String): User? {
         return try {
             Log.d("FirestoreRepository", "Fetching user with UID: $uid")

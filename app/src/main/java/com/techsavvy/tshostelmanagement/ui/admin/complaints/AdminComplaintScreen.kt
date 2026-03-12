@@ -2,8 +2,10 @@ package com.techsavvy.tshostelmanagement.ui.admin.complaints
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,13 +16,20 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.techsavvy.tshostelmanagement.data.models.Complaint
+import android.content.Intent
+import android.net.Uri
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -112,12 +121,81 @@ fun ComplaintManagementContent(
         .fillMaxWidth()
         .verticalScroll(rememberScrollState())
     ) {
+        val context = LocalContext.current
+
         Text("User Details", color = Color(0xFF22D3EE), fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(8.dp))
         DetailRow("Name", complaint.userName)
         DetailRow("Email", complaint.userEmail)
         DetailRow("Phone", complaint.userPhone)
         DetailRow("Location", "Floor ${complaint.floor}, Room ${complaint.roomNo}")
+
+        // ── Attachments ────────────────────────────────────────────────────
+        if (complaint.mediaUrls.isNotEmpty()) {
+            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), color = Color.White.copy(alpha = 0.1f))
+            Text("Attachments", color = Color(0xFFF59E0B), fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(8.dp))
+
+            var fullscreenUrl by remember { mutableStateOf<String?>(null) }
+
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                items(complaint.mediaUrls) { url ->
+                    val isVideo = url.endsWith(".mp4", true) ||
+                        url.endsWith(".mov", true) ||
+                        url.endsWith(".avi", true) ||
+                        url.endsWith(".mkv", true) ||
+                        url.contains("/video")
+
+                    if (isVideo) {
+                        Box(
+                            modifier = Modifier
+                                .size(90.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(Color.White.copy(alpha = 0.08f))
+                                .clickable {
+                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
+                                        setDataAndType(Uri.parse(url), "video/*")
+                                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                    }
+                                    context.startActivity(intent)
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Rounded.PlayCircle,
+                                contentDescription = "Play video",
+                                tint = Color(0xFF22D3EE),
+                                modifier = Modifier.size(40.dp)
+                            )
+                        }
+                    } else {
+                        AsyncImage(
+                            model = url,
+                            contentDescription = "Attachment",
+                            modifier = Modifier
+                                .size(90.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                                .clickable { fullscreenUrl = url },
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                }
+            }
+
+            fullscreenUrl?.let { url ->
+                Dialog(onDismissRequest = { fullscreenUrl = null }) {
+                    AsyncImage(
+                        model = url,
+                        contentDescription = "Full image",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .clickable { fullscreenUrl = null },
+                        contentScale = ContentScale.FillWidth
+                    )
+                }
+            }
+        }
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), color = Color.White.copy(alpha = 0.1f))
 

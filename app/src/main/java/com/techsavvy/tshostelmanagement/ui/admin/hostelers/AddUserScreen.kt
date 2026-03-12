@@ -1,12 +1,6 @@
 package com.techsavvy.tshostelmanagement.ui.admin.hostelers
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
@@ -19,6 +13,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.techsavvy.tshostelmanagement.data.utils.Role
 import com.techsavvy.tshostelmanagement.ui.auth.AuthViewModel
 import com.techsavvy.tshostelmanagement.ui.auth.AuthState
 
@@ -32,13 +27,19 @@ fun AddUserScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
-    val authState = authViewModel.authState.collectAsState()
+    val authState by authViewModel.authState.collectAsState()
+
+    LaunchedEffect(authState) {
+        if (authState is AuthState.RegistrationSuccess) {
+            navController.popBackStack()
+        }
+    }
 
     Scaffold(
         containerColor = Color(0xFF010413),
         topBar = {
             TopAppBar(
-                title = { Text("Add User", color = Color.White) },
+                title = { Text("Add Hosteller", color = Color.White) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent
                 )
@@ -118,7 +119,7 @@ fun AddUserScreen(
 
             Button(
                 onClick = {
-                    authViewModel.adminRegisterUser(email, password, username, phone)
+                    authViewModel.adminRegisterUser(email, password, username, phone, Role.HOSTELER)
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -127,27 +128,21 @@ fun AddUserScreen(
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF4ADE80)
                 ),
-                enabled = authState.value !is AuthState.Loading
+                enabled = authState !is AuthState.Loading
             ) {
-                if (authState.value is AuthState.Loading) {
+                if (authState is AuthState.Loading) {
                     CircularProgressIndicator(color = Color.Black)
                 } else {
-                    Text("Add User", color = Color.Black)
+                    Text("Add Hosteller", color = Color.Black)
                 }
             }
-            authState.value.let { state ->
-                if (state is AuthState.Error) {
-                    Text(text = state.message, color = MaterialTheme.colorScheme.error)
-                }
-            }
-        }
-
-        LaunchedEffect(authState.value) {
-            when (authState.value) {
-                is AuthState.Authenticated -> {
-                    navController.popBackStack()
-                }
-                else -> Unit
+            
+            if (authState is AuthState.Error) {
+                Text(
+                    text = (authState as AuthState.Error).message, 
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
             }
         }
     }

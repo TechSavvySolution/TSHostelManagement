@@ -1,5 +1,6 @@
 package com.techsavvy.tshostelmanagement.ui.admin.staff
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.FirebaseApp
@@ -9,6 +10,7 @@ import com.techsavvy.tshostelmanagement.data.repositories.FirestoreRepository
 import com.techsavvy.tshostelmanagement.data.utils.Role
 import com.techsavvy.tshostelmanagement.ui.auth.AuthState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -18,7 +20,8 @@ import javax.inject.Inject
 @HiltViewModel
 class AddStaffViewModel @Inject constructor(
     private val auth: FirebaseAuth,
-    private val repository: FirestoreRepository
+    private val repository: FirestoreRepository,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _authState = MutableStateFlow<AuthState>(AuthState.Initial)
@@ -27,44 +30,34 @@ class AddStaffViewModel @Inject constructor(
     fun registerStaff(email: String, password: String, username: String, phone: String) {
         viewModelScope.launch {
             _authState.value = AuthState.Loading
+            
+            val secondaryAppName = "StaffReg_${System.currentTimeMillis()}"
+            val options = auth.app.options
+            
             try {
-                // 1. Get default app options
-                val defaultApp = FirebaseApp.getInstance()
-                val options = defaultApp.options
-                
-                // 2. Initialize a secondary app manually
-                val secondaryAppName = "SecondaryApp_${System.currentTimeMillis()}"
-                val secondaryApp = FirebaseApp.initializeApp(defaultApp.applicationContext, options, secondaryAppName)
-                
-                // 3. Get Auth instance for the secondary app
+                // Use secondary app to avoid logging out the current Admin
+                val secondaryApp = FirebaseApp.initializeApp(context, options, secondaryAppName)
                 val secondaryAuth = FirebaseAuth.getInstance(secondaryApp)
-                
-                // 4. Create the user on the secondary instance (doesn't affect primary auth state)
-                val result = secondaryAuth.createUserWithEmailAndPassword(email, password).await()
-                val firebaseUser = result.user
 
-                if (firebaseUser != null) {
+                val result = secondaryAuth.createUserWithEmailAndPassword(email, password).await()
+                val uid = result.user?.uid
+
+                if (uid != null) {
                     val user = User(
-                        uid = firebaseUser.uid,
+                        uid = uid,
                         name = username,
                         email = email,
-                        pass = password,
                         phone = phone,
                         role = Role.STAFF,
                         active = true
                     )
-                    // 2. Wait for Firestore to save before updating state
                     repository.saveUser(user)
-
-                    // 3. Success
-                    _authState.value = AuthState.Authenticated(user)
+                    
+                    secondaryApp.delete()
+                    _authState.value = AuthState.RegistrationSuccess
                 } else {
-                    _authState.value = AuthState.Error("User creation failed.")
+                    _authState.value = AuthState.Error("Staff creation failed.")
                 }
-                
-                // Clean up: Delete the secondary app
-                secondaryApp.delete()
-                
             } catch (e: Exception) {
                 _authState.value = AuthState.Error(e.localizedMessage ?: "Registration failed.")
             }

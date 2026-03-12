@@ -1,12 +1,16 @@
 package com.techsavvy.tshostelmanagement.ui.auth
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.FirebaseApp
+import com.google.firebase.FirebaseOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.techsavvy.tshostelmanagement.data.models.User
 import com.techsavvy.tshostelmanagement.data.repositories.FirestoreRepository
 import com.techsavvy.tshostelmanagement.data.utils.Role
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -16,7 +20,8 @@ import javax.inject.Inject
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val auth: FirebaseAuth,
-    private val repository: FirestoreRepository
+    private val repository: FirestoreRepository,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _authState = MutableStateFlow<AuthState>(AuthState.Initial)
@@ -25,26 +30,23 @@ class AuthViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow<Boolean>(false)
     val isLoading = _isLoading.asStateFlow()
 
-
     init {
         checkUserExists()
     }
 
-    fun checkUserExists() {
-        viewModelScope.launch {
-            _isLoading.value = true
-            val uid = auth.uid
-            if (uid != null) {
+    private fun checkUserExists() {
+        val uid = auth.uid
+        if (uid != null) {
+            viewModelScope.launch {
+                _isLoading.value = true
                 val user = repository.getUser(uid)
                 if (user != null) {
                     _authState.value = AuthState.Authenticated(user)
                 } else {
                     _authState.value = AuthState.Error("User data not found.")
                 }
-            } else {
-                _authState.value = AuthState.Error("Authentication failed: User not found.")
+                _isLoading.value = false
             }
-            _isLoading.value = false
         }
     }
 
@@ -61,8 +63,6 @@ class AuthViewModel @Inject constructor(
                     } else {
                         _authState.value = AuthState.Error("User data not found.")
                     }
-                } else {
-                    _authState.value = AuthState.Error("Authentication failed: User not found.")
                 }
             } catch (e: Exception) {
                 _authState.value = AuthState.Error(e.message ?: "Authentication failed.")
@@ -70,62 +70,57 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    fun registerUser(email: String, password: String, username: String, phone: String) {
+    /**
+     * Professional method to create a user WITHOUT logging out the current Admin.
+     * It uses a secondary Firebase instance internally.
+     */
+    fun adminRegisterUser(
+        email: String,
+        password: String,
+        username: String,
+        phone: String,
+        role: Role = Role.HOSTELER
+    ) {
         viewModelScope.launch {
             _authState.value = AuthState.Loading
+            
+            // Step 1: Initialize a secondary Firebase instance
+            val secondaryAppName = "SecondaryApp_${System.currentTimeMillis()}"
+            val options = auth.app.options
+            
             try {
-                val result = auth.createUserWithEmailAndPassword(email, password).await()
-                val firebaseUser = result.user
-                firebaseUser?.let {
+                val secondaryApp = FirebaseApp.initializeApp(context, options, secondaryAppName)
+                val secondaryAuth = FirebaseAuth.getInstance(secondaryApp)
+
+                // Step 2: Create user in the secondary instance (doesn't affect main login)
+                val result = secondaryAuth.createUserWithEmailAndPassword(email, password).await()
+                val uid = result.user?.uid
+
+                if (uid != null) {
                     val user = User(
-                        uid = it.uid,
+                        uid = uid,
                         name = username,
                         email = email,
-                        pass = password,
                         phone = phone,
-                        role = Role.HOSTELER,
+                        role = role,
                         active = true
                     )
+                    
+                    // Step 3: Save to Firestore via main repository
                     repository.saveUser(user)
-                    _authState.value = AuthState.Authenticated(user)
-                } ?: run {
-                    _authState.value = AuthState.Error("Registration failed: User could not be created.")
+                    
+                    // Step 4: Cleanup
+                    secondaryApp.delete()
+                    _authState.value = AuthState.RegistrationSuccess
                 }
             } catch (e: Exception) {
-                _authState.value = AuthState.Error(e.message ?: "Registration failed.")
+                _authState.value = AuthState.Error(e.message ?: "Failed to create user.")
             }
         }
     }
 
-    // --- Added function to fix the Unresolved Reference error ---
-    fun adminRegisterUser(email: String, password: String, username: String, phone: String) {
-        viewModelScope.launch {
-            _authState.value = AuthState.Loading
-            try {
-                val result = auth.createUserWithEmailAndPassword(email, password).await()
-                val firebaseUser = result.user
-                firebaseUser?.let {
-                    val user = User(
-                        uid = it.uid,
-                        name = username,
-                        email = email,
-                        pass = password,
-                        phone = phone,
-                        role = Role.HOSTELER, // Admins usually register Hostelers
-                        active = true
-                    )
-                    repository.saveUser(user)
-
-                    // Note: Successfully created the user.
-                    // Depending on your UI, you might want a different state than Authenticated
-                    // because Firebase automatically logs in the newly created user.
-                    _authState.value = AuthState.Authenticated(user)
-                } ?: run {
-                    _authState.value = AuthState.Error("Admin Registration failed: User not created.")
-                }
-            } catch (e: Exception) {
-                _authState.value = AuthState.Error(e.message ?: "Admin Registration failed.")
-            }
-        }
+    fun logout() {
+        auth.signOut()
+        _authState.value = AuthState.Initial
     }
 }

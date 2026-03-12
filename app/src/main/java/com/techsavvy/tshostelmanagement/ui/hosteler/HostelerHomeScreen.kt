@@ -1,5 +1,6 @@
 package com.techsavvy.tshostelmanagement.ui.hosteler.home
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -28,18 +29,23 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.techsavvy.tshostelmanagement.navigation.Screens
 import com.techsavvy.tshostelmanagement.ui.hosteler.fees.HostelerFeesViewModel
+import com.techsavvy.tshostelmanagement.ui.hosteler.profile.AccentRed
+import com.techsavvy.tshostelmanagement.ui.hosteler.profile.AccentRedDim
 
 @Composable
 fun HostelerHomeScreen(
     navController: NavController,
     viewModel: HostelerViewModel = hiltViewModel(),
-    feesViewModel: HostelerFeesViewModel = hiltViewModel()
+    feesViewModel: HostelerFeesViewModel = hiltViewModel(),
+    complaintViewModel: com.techsavvy.tshostelmanagement.ui.hosteler.ComplaintViewModel = hiltViewModel()
 ) {
     val user by viewModel.currentUser.collectAsState()
     val messMenu by viewModel.messMenu.collectAsState()
     val feeRecords by feesViewModel.feeRecords.collectAsState()
     val feesStatus = feesViewModel.feesStatusText
     val roomInfo by viewModel.roomInfo.collectAsState()
+    val complaints by complaintViewModel.complaints.collectAsState()
+    val latestComplaint = complaints.firstOrNull()
     val scrollState = rememberScrollState()
 
     Scaffold(
@@ -74,6 +80,10 @@ fun HostelerHomeScreen(
                 val (roomName, floorName, blockName) = roomInfo!!
                 RoomInfoCard(roomName = roomName, floorName = floorName, blockName = blockName)
                 Spacer(modifier = Modifier.height(16.dp))
+
+                RoommatesButton(
+                    onClick = { navController.navigate(Screens.Hosteler.Roommates.route) }
+                )
             }
 
             Row(
@@ -116,6 +126,7 @@ fun HostelerHomeScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             ComplaintPreviewCard(
+                latestComplaint = latestComplaint,
                 onActionClick = {
                     navController.navigate(Screens.Hosteler.Complaints.route)
                 }
@@ -323,25 +334,69 @@ fun MessMenuCard(menu: com.techsavvy.tshostelmanagement.data.models.MessMenu) {
 }
 
 @Composable
-fun ComplaintPreviewCard(onActionClick: () -> Unit) {
+fun ComplaintPreviewCard(
+    latestComplaint: com.techsavvy.tshostelmanagement.data.models.Complaint?,
+    onActionClick: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(24.dp))
             .background(Color.White.copy(alpha = 0.05f))
             .padding(20.dp)
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                Icons.Rounded.CheckCircle,
-                contentDescription = null,
-                tint = Color.Gray,
-                modifier = Modifier.size(24.dp)
+            .clickable(
+                onClick = onActionClick
             )
-            Spacer(modifier = Modifier.width(16.dp))
-            Column {
-                Text("No active complaints", color = Color.White.copy(alpha = 0.7f), fontWeight = FontWeight.SemiBold)
-                Text("Everything looks good!", color = Color.Gray, fontSize = 12.sp)
+        ,
+    ) {
+        if (latestComplaint != null) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                val icon = when (latestComplaint.status.lowercase()) {
+                    "resolved" -> Icons.Rounded.CheckCircle
+                    "in progress", "processing", "pending" -> Icons.Rounded.Pending
+                    else -> Icons.Rounded.Info
+                }
+                val iconTint = when (latestComplaint.status.lowercase()) {
+                    "resolved" -> Color(0xFF4ADE80)
+                    "in progress", "processing", "pending" -> Color(0xFFFACC15)
+                    else -> Color(0xFF22D3EE)
+                }
+
+                Icon(
+                    icon,
+                    contentDescription = null,
+                    tint = iconTint,
+                    modifier = Modifier.size(32.dp)
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        latestComplaint.subject,
+                        color = Color.White,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                    )
+                    Text(
+                        "Status: ${latestComplaint.status}",
+                        color = Color.Gray,
+                        fontSize = 12.sp
+                    )
+                }
+            }
+        } else {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    Icons.Rounded.CheckCircle,
+                    contentDescription = null,
+                    tint = Color.Gray,
+                    modifier = Modifier.size(32.dp)
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                Column {
+                    Text("No active complaints", color = Color.White.copy(alpha = 0.7f), fontWeight = FontWeight.SemiBold)
+                    Text("Everything looks good!", color = Color.Gray, fontSize = 12.sp)
+                }
             }
         }
 
@@ -393,6 +448,49 @@ fun AnnouncementButton(onClick: () -> Unit) {
                     modifier = Modifier.size(28.dp)
                 )
             }
+        }
+    }
+}
+
+@Composable
+fun RoommatesButton(onClick: () -> Unit) {
+    Card(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth().height(80.dp),
+        colors = CardDefaults.cardColors(containerColor = AccentRedDim),
+        shape = RoundedCornerShape(24.dp),
+        border = BorderStroke(
+            1.dp,
+            Brush.horizontalGradient(listOf(AccentRed.copy(alpha = 0.5f), Color.Transparent))
+        )
+    ) {
+        Row(
+            modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(AccentRed.copy(alpha = 0.2f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Rounded.Group, null, tint = AccentRed)
+                }
+                Spacer(modifier = Modifier.width(16.dp))
+                Column {
+                    Text("My Roommates", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Text("See who is sharing with you", color = Color.White.copy(alpha = 0.8f), fontSize = 12.sp)
+                }
+            }
+            Icon(
+                Icons.AutoMirrored.Rounded.ArrowForward,
+                contentDescription = null,
+                tint = AccentRed,
+                modifier = Modifier.size(24.dp)
+            )
         }
     }
 }

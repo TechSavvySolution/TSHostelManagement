@@ -37,6 +37,7 @@ import com.techsavvy.tshostelmanagement.ui.hosteler.HostelerSettingsScreen
 import com.techsavvy.tshostelmanagement.ui.hosteler.RaiseComplaintScreen
 import com.techsavvy.tshostelmanagement.ui.hosteler.home.HostelerHomeScreen
 import com.techsavvy.tshostelmanagement.ui.hosteler.profile.HostelerProfileScreen
+import com.techsavvy.tshostelmanagement.ui.hosteler.RoommatesScreen
 
 // ANNOUNCEMENT MODULE IMPORTS
 import com.techsavvy.tshostelmanagement.ui.admin.announcements.AdminAnnouncementsScreen
@@ -142,7 +143,7 @@ fun NavGraphBuilder.adminGraph(navController: NavController) {
         composable(Screens.Admin.MessMenu.route) { AdminMessMenuScreen(navController) }
         composable(Screens.Admin.Fees.route) { FeesScreen(navController = navController) }
         composable(Screens.Admin.Reports.route) { ReportsScreen() }
-        composable(Screens.Admin.Profile.route) { ProfileScreen() }
+        composable(Screens.Admin.Profile.route) { ProfileScreen(navController) }
         composable(Screens.Admin.Settings.route) { SettingsScreen(navController) }
         composable(Screens.Admin.About.route) { AboutScreen(navController) }
         composable(Screens.Auth.RegisterUser.route) { RegisterUserScreen(navController) }
@@ -223,6 +224,10 @@ fun NavGraphBuilder.hostelerGraph(navController: NavController) {
         // HOSTELER ABOUT
         composable(Screens.Hosteler.About.route) {
             AboutScreen(navController)
+        }
+        // HOSTELER ROOMMATES
+        composable(Screens.Hosteler.Roommates.route) {
+            RoommatesScreen(navController)
         }
     }
 }

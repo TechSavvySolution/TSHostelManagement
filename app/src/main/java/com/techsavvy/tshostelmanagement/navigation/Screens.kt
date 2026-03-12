@@ -102,6 +102,7 @@ sealed class Screens(val route: String, val title: String = "") {
         object Settings : Screens("hosteler_settings", "Settings")
         object Fees : Screens("hosteler_fees", "My Fees")
         object About : Screens("hosteler_about", "About Us")
+        object Roommates : Screens("hosteler_roommates", "My Room")
     }
 }
 

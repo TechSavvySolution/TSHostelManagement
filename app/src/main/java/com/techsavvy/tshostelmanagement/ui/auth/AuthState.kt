@@ -6,5 +6,6 @@ sealed class AuthState {
     object Initial : AuthState()
     object Loading : AuthState()
     data class Authenticated(val user: User?) : AuthState()
+    object RegistrationSuccess : AuthState()
     data class Error(val message: String) : AuthState()
 }

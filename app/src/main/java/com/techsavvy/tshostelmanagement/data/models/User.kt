@@ -6,10 +6,10 @@ data class User(
     val uid: String = "",
     val name: String = "",
     val email: String = "",
-    val pass: String = "",
     val phone: String = "",
     val role: Role = Role.HOSTELER,
     val active: Boolean = false,
+    val deleted: Boolean = false,
     val created_at: Long? = System.currentTimeMillis(),
-    val deleted: Boolean = false   // SOFT DELETE flag
+    val profilePhotoUrl: String = ""
 )

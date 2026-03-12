@@ -27,6 +27,12 @@ fun AddStaffScreen(
     var phone by remember { mutableStateOf("") }
     val authState by viewModel.authState.collectAsState()
 
+    LaunchedEffect(authState) {
+        if (authState is AuthState.RegistrationSuccess) {
+            navController.popBackStack()
+        }
+    }
+
     Scaffold(
         containerColor = Color(0xFF010413),
         topBar = {
@@ -118,13 +124,11 @@ fun AddStaffScreen(
             }
 
             if (authState is AuthState.Error) {
-                Text(text = (authState as AuthState.Error).message, color = MaterialTheme.colorScheme.error)
-            }
-        }
-
-        LaunchedEffect(authState) {
-            if (authState is AuthState.Authenticated) {
-                navController.popBackStack()
+                Text(
+                    text = (authState as AuthState.Error).message, 
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
             }
         }
     }
