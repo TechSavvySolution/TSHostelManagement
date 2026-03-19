@@ -6,16 +6,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,6 +27,7 @@ fun DetailsRoomScreen(
     viewModel: InfrastructureViewModel = hiltViewModel()
 ) {
     val room by viewModel.selectedRoom.collectAsState()
+    val studentsInRoom by viewModel.studentsInRoom.collectAsState()
     val showDeleteConfirmation = remember { mutableStateOf(false) }
 
     if (showDeleteConfirmation.value) {
@@ -54,6 +48,7 @@ fun DetailsRoomScreen(
     LaunchedEffect(roomId) {
         if (roomId != null) {
             viewModel.getRoom(roomId)
+            viewModel.fetchStudentsForRoom(roomId)
         }
     }
 
@@ -85,21 +80,16 @@ fun DetailsRoomScreen(
 
         val currentRoom = room
         if (currentRoom != null) {
-            Column(
-                modifier = Modifier
-                    .padding(paddingValues)
-                    .fillMaxSize()
-            ) {
+            Column(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
                 Column(
                     modifier = Modifier
                         .weight(1f)
                         .padding(horizontal = 16.dp)
                         .verticalScroll(rememberScrollState())
                 ) {
+                    // Room summary card
                     Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 16.dp),
+                        modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
                         shape = RoundedCornerShape(16.dp),
                         colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.05f))
                     ) {
@@ -109,29 +99,66 @@ fun DetailsRoomScreen(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                Text(
-                                    text = currentRoom.name,
-                                    fontSize = 24.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White
-                                )
-                                StatusChip(status = if (currentRoom.capacity > 3) Status.FULL else Status.ACTIVE)
+                                Text(currentRoom.name, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                                StatusChip(status = if (studentsInRoom.size >= currentRoom.capacity && currentRoom.capacity > 0) Status.FULL else Status.ACTIVE)
                             }
-                            // Add more room details here
+                            Spacer(Modifier.height(16.dp))
+                            // Room detail rows
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                StatCard(
+                                    title = "Capacity",
+                                    value = currentRoom.capacity.toString(),
+                                    icon = Icons.Default.Group,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                StatCard(
+                                    title = "Occupied",
+                                    value = studentsInRoom.size.toString(),
+                                    icon = Icons.Default.PersonPin,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                StatCard(
+                                    title = "Available",
+                                    value = maxOf(0, currentRoom.capacity - studentsInRoom.size).toString(),
+                                    icon = Icons.Default.PersonAdd,
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                            Spacer(Modifier.height(12.dp))
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text("Room Number", color = Color.Gray, fontSize = 13.sp)
+                                Text(currentRoom.roomNumber.toString(), color = Color.White, fontWeight = FontWeight.SemiBold)
+                            }
                         }
                     }
+
                     Spacer(modifier = Modifier.height(24.dp))
-                    Divider(color = Color.White.copy(alpha = 0.2f))
+                    HorizontalDivider(color = Color.White.copy(alpha = 0.2f))
                     Spacer(modifier = Modifier.height(16.dp))
+
+                    // Students staying here
+                    StudentsSectionHeader(count = studentsInRoom.size)
+                    if (studentsInRoom.isEmpty()) {
+                        StudentsEmptyState()
+                    } else {
+                        studentsInRoom.forEach { student ->
+                            StudentMiniCard(student)
+                            Spacer(Modifier.height(8.dp))
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
                 }
+
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     OutlinedButton(
-                        onClick = { navController.navigate(Screens.Admin.EditRoom.route + "/" + roomId)},
+                        onClick = { navController.navigate(Screens.Admin.EditRoom.route + "/" + roomId) },
                         modifier = Modifier.weight(1f)
                     ) {
                         Icon(Icons.Default.Edit, contentDescription = "Edit")
@@ -139,9 +166,7 @@ fun DetailsRoomScreen(
                         Text("Edit")
                     }
                     Button(
-                        onClick = { 
-                            showDeleteConfirmation.value = true
-                        },
+                        onClick = { showDeleteConfirmation.value = true },
                         colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
                         modifier = Modifier.weight(1f)
                     ) {

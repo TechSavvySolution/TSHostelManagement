@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -432,23 +433,43 @@ fun AdminFeeRecordCard(
             if (isSelected) Icon(Icons.Rounded.Check, null, tint = Color.White, modifier = Modifier.size(14.dp))
         }
         Spacer(Modifier.width(12.dp))
-
-        Column(modifier = Modifier.weight(1f)) {
-            Text(record.hostelerName, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-            Text("₹${record.amount.toInt()}", color = Color.White.copy(0.7f), fontSize = 13.sp)
-
-            // Transaction ID for UPI paid records
-            if (isPaid && isUpi && record.transactionId.isNotEmpty()) {
-                Text("TXNID: ${record.transactionId}", color = Color(0xFF4ADE80).copy(0.7f), fontSize = 11.sp)
+        // Avatar + info row
+        Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+            // Circular initial avatar
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFF4ADE80).copy(alpha = 0.12f))
+                    .border(1.5.dp, Color(0xFF4ADE80).copy(alpha = 0.4f), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    record.hostelerName.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
+                    color = Color(0xFF4ADE80),
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
             }
+            Spacer(Modifier.width(12.dp))
 
-            // Paid date or due date
-            if (isPaid && record.paidAt != null) {
-                Text("Paid: ${dateFormat.format(Date(record.paidAt))}", color = Color.Gray, fontSize = 11.sp)
-            } else if (record.dueDate > 0L) {
-                Text("Due: ${dateFormat.format(Date(record.dueDate))}", color = Color(0xFFF87171).copy(0.8f), fontSize = 11.sp)
+            Column {
+                Text(record.hostelerName, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                Text("₹${record.amount.toInt()}", color = Color.White.copy(0.7f), fontSize = 13.sp)
+
+                // Transaction ID for UPI paid records
+                if (isPaid && isUpi && record.transactionId.isNotEmpty()) {
+                    Text("TXNID: ${record.transactionId}", color = Color(0xFF4ADE80).copy(0.7f), fontSize = 11.sp)
+                }
+
+                // Paid date or due date
+                if (isPaid && record.paidAt != null) {
+                    Text("Paid: ${dateFormat.format(Date(record.paidAt))}", color = Color.Gray, fontSize = 11.sp)
+                } else if (record.dueDate > 0L) {
+                    Text("Due: ${dateFormat.format(Date(record.dueDate))}", color = Color(0xFFF87171).copy(0.8f), fontSize = 11.sp)
+                }
             }
-        }
+        }  // end inner Row
 
         Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(4.dp)) {
             if (isPaid) {

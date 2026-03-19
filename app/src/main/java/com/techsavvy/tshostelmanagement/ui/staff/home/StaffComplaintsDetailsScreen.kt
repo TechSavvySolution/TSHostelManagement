@@ -3,11 +3,13 @@ package com.techsavvy.tshostelmanagement.ui.staff.complaints
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -130,10 +132,45 @@ fun StaffComplaintDetailsScreen(
                     colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.05f))
                 ) {
                     Column(Modifier.padding(16.dp)) {
-                        DetailRow("Name", complaint.userName)
+                        // Profile photo header
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(bottom = 16.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(60.dp)
+                                    .clip(CircleShape)
+                                    .background(Color(0xFF4ADE80).copy(alpha = 0.12f))
+                                    .border(2.dp, Color(0xFF4ADE80).copy(alpha = 0.5f), CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (complaint.profilePhotoUrl.isNotBlank()) {
+                                    AsyncImage(
+                                        model = complaint.profilePhotoUrl,
+                                        contentDescription = "Avatar",
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                } else {
+                                    Text(
+                                        complaint.userName.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
+                                        color = Color(0xFF4ADE80),
+                                        fontSize = 22.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+                            Spacer(Modifier.width(16.dp))
+                            Column {
+                                Text(complaint.userName, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                Text(complaint.userEmail, color = Color.Gray, fontSize = 12.sp)
+                            }
+                        }
+                        HorizontalDivider(color = Color.White.copy(alpha = 0.08f))
+                        Spacer(Modifier.height(12.dp))
                         DetailRow("Room", "${complaint.roomNo} (Floor ${complaint.floor})")
                         DetailRow("Phone", complaint.userPhone)
-                        DetailRow("Email", complaint.userEmail)
                     }
                 }
 

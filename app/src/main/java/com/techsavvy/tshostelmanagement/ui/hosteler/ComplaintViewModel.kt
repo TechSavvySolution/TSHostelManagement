@@ -83,6 +83,7 @@ class ComplaintViewModel @Inject constructor(
                     userName = userProfile?.name ?: "Hosteller",
                     userEmail = userProfile?.email ?: "",
                     userPhone = userProfile?.phone ?: "",
+                    profilePhotoUrl = userProfile?.profilePhotoUrl ?: "",
                     title = subject,
                     subject = subject,
                     message = message,

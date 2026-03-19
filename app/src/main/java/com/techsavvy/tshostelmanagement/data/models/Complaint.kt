@@ -8,6 +8,7 @@ data class Complaint(
     val userName: String = "",
     val userEmail: String = "",
     val userPhone: String = "",
+    val profilePhotoUrl: String = "",
     val floor: String = "",
     val roomNo: String = "",
     val title: String = "",

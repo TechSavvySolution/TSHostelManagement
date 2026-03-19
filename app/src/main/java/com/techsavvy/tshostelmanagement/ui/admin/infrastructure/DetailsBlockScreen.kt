@@ -16,7 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.techsavvy.tshostelmanagement.navigation.Screens
 
@@ -30,6 +30,7 @@ fun DetailsBlockScreen(
     val block by viewModel.selectedBlock.collectAsState()
     val floors by viewModel.floors.collectAsState()
     val rooms by viewModel.rooms.collectAsState()
+    val studentsInBlock by viewModel.studentsInBlock.collectAsState()
     val showDeleteConfirmation = remember { mutableStateOf(false) }
 
     if (showDeleteConfirmation.value) {
@@ -51,6 +52,7 @@ fun DetailsBlockScreen(
         if (blockId != null) {
             viewModel.getBlock(blockId)
             viewModel.getFloorsForBlock(blockId)
+            viewModel.fetchStudentsForBlock(blockId)
         }
     }
 
@@ -182,6 +184,21 @@ fun DetailsBlockScreen(
                         }
                     } else {
                         Text("No floors found for this block.", color = Color.White.copy(alpha = 0.7f))
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+                    HorizontalDivider(color = Color.White.copy(alpha = 0.2f))
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // ── Students Section ──────────────────────────────────────
+                    StudentsSectionHeader(count = studentsInBlock.size)
+                    if (studentsInBlock.isEmpty()) {
+                        StudentsEmptyState()
+                    } else {
+                        studentsInBlock.forEach { student ->
+                            StudentMiniCard(student)
+                            Spacer(Modifier.height(8.dp))
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(24.dp))

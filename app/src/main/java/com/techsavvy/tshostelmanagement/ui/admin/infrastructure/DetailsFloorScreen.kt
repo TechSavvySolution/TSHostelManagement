@@ -11,13 +11,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KingBed
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -37,6 +31,7 @@ fun DetailsFloorScreen(
 ) {
     val floor by viewModel.selectedFloor.collectAsState()
     val rooms by viewModel.rooms.collectAsState()
+    val studentsInFloor by viewModel.studentsInFloor.collectAsState()
     val showDeleteConfirmation = remember { mutableStateOf(false) }
 
     if (showDeleteConfirmation.value) {
@@ -58,6 +53,7 @@ fun DetailsFloorScreen(
         if (floorId != null) {
             viewModel.getFloor(floorId)
             viewModel.getRoomsForFloor(floorId)
+            viewModel.fetchStudentsForFloor(floorId)
         }
     }
 
@@ -89,11 +85,7 @@ fun DetailsFloorScreen(
 
         val currentFloor = floor
         if (currentFloor != null) {
-            Column(
-                modifier = Modifier
-                    .padding(paddingValues)
-                    .fillMaxSize()
-            ) {
+            Column(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
                 Column(
                     modifier = Modifier
                         .weight(1f)
@@ -101,9 +93,7 @@ fun DetailsFloorScreen(
                         .verticalScroll(rememberScrollState())
                 ) {
                     Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 16.dp),
+                        modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
                         shape = RoundedCornerShape(16.dp),
                         colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.05f))
                     ) {
@@ -113,12 +103,7 @@ fun DetailsFloorScreen(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                Text(
-                                    text = currentFloor.name,
-                                    fontSize = 24.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White
-                                )
+                                Text(currentFloor.name, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.White)
                                 StatusChip(status = Status.ACTIVE)
                             }
                             Spacer(modifier = Modifier.height(16.dp))
@@ -127,9 +112,12 @@ fun DetailsFloorScreen(
                             }
                         }
                     }
+
                     Spacer(modifier = Modifier.height(24.dp))
-                    Divider(color = Color.White.copy(alpha = 0.2f))
+                    HorizontalDivider(color = Color.White.copy(alpha = 0.2f))
                     Spacer(modifier = Modifier.height(16.dp))
+
+                    // Rooms section — upgraded styled cards
                     Text(
                         text = "Rooms in this Floor",
                         fontSize = 20.sp,
@@ -139,21 +127,53 @@ fun DetailsFloorScreen(
                     )
                     if (rooms.isNotEmpty()) {
                         rooms.forEach { room ->
-                            ListItem(
-                                headlineContent = { Text(room.name, color = Color.White) },
-                                modifier = Modifier.clickable { navController.navigate("details_room/${room.id}") },
-                                colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-                            )
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp)
+                                    .clickable { navController.navigate(Screens.Admin.DetailsRoom.createRoute(room.id)) },
+                                shape = RoundedCornerShape(12.dp),
+                                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.05f))
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(16.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(Icons.Default.KingBed, contentDescription = "Room", tint = Color(0xFF4ADE80))
+                                    Spacer(modifier = Modifier.width(16.dp))
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(room.name, color = Color.White, fontWeight = FontWeight.SemiBold)
+                                        Text("Capacity: ${room.capacity}", color = Color.Gray, fontSize = 12.sp)
+                                    }
+                                }
+                            }
                         }
                     } else {
                         Text("No rooms found for this floor.", color = Color.White.copy(alpha = 0.7f))
                     }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+                    HorizontalDivider(color = Color.White.copy(alpha = 0.2f))
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Students section
+                    StudentsSectionHeader(count = studentsInFloor.size)
+                    if (studentsInFloor.isEmpty()) {
+                        StudentsEmptyState()
+                    } else {
+                        studentsInFloor.forEach { student ->
+                            StudentMiniCard(student)
+                            Spacer(Modifier.height(8.dp))
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
                 }
+
+                // Edit / Delete bottom bar
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     OutlinedButton(
                         onClick = { navController.navigate(Screens.Admin.EditFloor.route + "/" + floorId) },
@@ -164,9 +184,7 @@ fun DetailsFloorScreen(
                         Text("Edit")
                     }
                     Button(
-                        onClick = { 
-                            showDeleteConfirmation.value = true
-                        },
+                        onClick = { showDeleteConfirmation.value = true },
                         colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
                         modifier = Modifier.weight(1f)
                     ) {

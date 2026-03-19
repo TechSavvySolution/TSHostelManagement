@@ -1,16 +1,21 @@
 package com.techsavvy.tshostelmanagement.ui.admin.infrastructure
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.toObject
 import com.techsavvy.tshostelmanagement.data.models.Block
 import com.techsavvy.tshostelmanagement.data.models.Floor
+import com.techsavvy.tshostelmanagement.data.models.HostellerRoom
 import com.techsavvy.tshostelmanagement.data.models.Room
+import com.techsavvy.tshostelmanagement.data.models.User
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 @HiltViewModel
@@ -35,6 +40,16 @@ class InfrastructureViewModel @Inject constructor(
 
     private val _selectedRoom = MutableStateFlow<Room?>(null)
     val selectedRoom = _selectedRoom.asStateFlow()
+
+    // Students in each context
+    private val _studentsInBlock = MutableStateFlow<List<User>>(emptyList())
+    val studentsInBlock = _studentsInBlock.asStateFlow()
+
+    private val _studentsInFloor = MutableStateFlow<List<User>>(emptyList())
+    val studentsInFloor = _studentsInFloor.asStateFlow()
+
+    private val _studentsInRoom = MutableStateFlow<List<User>>(emptyList())
+    val studentsInRoom = _studentsInRoom.asStateFlow()
 
     private val _snackbarChannel = Channel<String>()
     val snackbarFlow = _snackbarChannel.receiveAsFlow()
@@ -84,13 +99,11 @@ class InfrastructureViewModel @Inject constructor(
         db.collection("blocks").document(block.id).set(block).addOnSuccessListener { _snackbarChannel.trySend("Block updated successfully") }
     }
 
-    // SOFT DELETE — sets deleted=true on the block document
     fun deleteBlock(id: String) {
         db.collection("blocks").document(id)
             .update("deleted", true)
-            .addOnSuccessListener { 
-                _snackbarChannel.trySend("Block removed successfully") 
-                // Cascade delete associated floors and rooms
+            .addOnSuccessListener {
+                _snackbarChannel.trySend("Block removed successfully")
                 _floors.value.filter { it.blockId == id }.forEach { floor ->
                     deleteFloorSilently(floor.id)
                 }
@@ -130,12 +143,11 @@ class InfrastructureViewModel @Inject constructor(
         db.collection("floors").document(floor.id).set(floor).addOnSuccessListener { _snackbarChannel.trySend("Floor updated successfully") }
     }
 
-    // SOFT DELETE — sets deleted=true on the floor document
     fun deleteFloor(id: String) {
         db.collection("floors").document(id)
             .update("deleted", true)
-            .addOnSuccessListener { 
-                _snackbarChannel.trySend("Floor removed successfully") 
+            .addOnSuccessListener {
+                _snackbarChannel.trySend("Floor removed successfully")
                 deleteFloorSilently(id)
             }
     }
@@ -186,14 +198,12 @@ class InfrastructureViewModel @Inject constructor(
         db.collection("rooms").document(room.id).set(room).addOnSuccessListener { _snackbarChannel.trySend("Room updated successfully") }
     }
 
-    // SOFT DELETE — sets deleted=true on the room document
     fun deleteRoom(id: String) {
         db.collection("rooms").document(id)
             .update("deleted", true)
             .addOnSuccessListener { _snackbarChannel.trySend("Room removed successfully") }
     }
 
-    // Generic soft delete used for cascade operations (when deleting a block with children)
     fun deleteItem(type: String, id: String) {
         when (type.lowercase()) {
             "block" -> deleteBlock(id)
@@ -204,6 +214,67 @@ class InfrastructureViewModel @Inject constructor(
                     .update("deleted", true)
                     .addOnSuccessListener { _snackbarChannel.trySend("$type removed successfully") }
             }
+        }
+    }
+
+    // ─── Student Fetch Methods ────────────────────────────────────────────────
+
+    fun fetchStudentsForRoom(roomId: String) {
+        viewModelScope.launch {
+            _studentsInRoom.value = getUsersForRoom(roomId)
+        }
+    }
+
+    fun fetchStudentsForFloor(floorId: String) {
+        viewModelScope.launch {
+            try {
+                val roomIds = db.collection("rooms")
+                    .whereEqualTo("floorId", floorId)
+                    .whereEqualTo("deleted", false)
+                    .get().await()
+                    .documents.mapNotNull { it.id }
+                val users = mutableListOf<User>()
+                roomIds.forEach { rid -> users.addAll(getUsersForRoom(rid)) }
+                _studentsInFloor.value = users.distinctBy { it.uid }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _studentsInFloor.value = emptyList()
+            }
+        }
+    }
+
+    fun fetchStudentsForBlock(blockId: String) {
+        viewModelScope.launch {
+            try {
+                val roomIds = db.collection("rooms")
+                    .whereEqualTo("blockId", blockId)
+                    .whereEqualTo("deleted", false)
+                    .get().await()
+                    .documents.mapNotNull { it.id }
+                val users = mutableListOf<User>()
+                roomIds.forEach { rid -> users.addAll(getUsersForRoom(rid)) }
+                _studentsInBlock.value = users.distinctBy { it.uid }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _studentsInBlock.value = emptyList()
+            }
+        }
+    }
+
+    private suspend fun getUsersForRoom(roomId: String): List<User> {
+        return try {
+            val assignments = db.collection("hosteller_room")
+                .whereEqualTo("roomId", roomId)
+                .get().await()
+                .toObjects(HostellerRoom::class.java)
+            assignments.mapNotNull { assignment ->
+                val doc = db.collection("users").document(assignment.uid).get().await()
+                val user = doc.toObject<User>()
+                if (user?.deleted != true) user else null
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
         }
     }
 }
