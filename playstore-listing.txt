@@ -1,0 +1,222 @@
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  TS HOSTEL MANAGEMENT — GOOGLE PLAY STORE LISTING
+  Prepared by TechSavvy Solution · info@techsavvysolution.in
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+═══════════════════════════════════════════════
+  1. APP TITLE  (max 30 characters)
+═══════════════════════════════════════════════
+
+  TS Hostel Management
+
+
+═══════════════════════════════════════════════
+  2. SHORT DESCRIPTION  (max 80 characters)
+═══════════════════════════════════════════════
+
+  Smart hostel management — rooms, fees, complaints & mess menu in one app.
+
+
+═══════════════════════════════════════════════
+  3. FULL / LONG DESCRIPTION  (max 4000 characters)
+═══════════════════════════════════════════════
+
+🏠 TS Hostel Management — Your All-in-One Smart Hostel Companion
+
+Managing a hostel has never been this seamless. TS Hostel Management is a feature-rich, role-based Android application designed for educational institutions to digitize and streamline every aspect of hostel operations — from room assignments and fee collection to complaint tracking and daily announcements.
+
+─── WHO IS IT FOR? ───────────────────────────
+
+👨‍🎓 HOSTELERS
+Stay on top of everything hostel-related from the palm of your hand:
+• View your room, floor, and block assignment at a glance.
+• Meet your roommates — see all co-residents in your room with contact details.
+• Raise complaints with photos or video attachments, and track their resolution status in real time.
+• Chat directly with the staff member handling your complaint.
+• Check your hostel fee status, pay via UPI in one tap, and keep payment records.
+• Stay informed with the latest announcements and the daily mess menu.
+• Customize your profile with a photo and personal details.
+
+👷 HOSTEL STAFF
+Efficiently resolve and manage resident issues:
+• View all assigned complaints with subject, description, and media attachments.
+• Update complaint status (Pending → In Progress → Resolved).
+• Chat with hostelers to clarify and communicate updates.
+
+🔧 ADMINISTRATORS
+Complete control over the entire hostel ecosystem:
+• Manage hostel infrastructure — add, edit, or remove Blocks, Floors, and Rooms.
+• View room occupancy, student assignments, and capacity stats per room/floor/block.
+• Add and manage all hosteler and staff user accounts.
+• Assign hostelers to specific rooms with a simple form.
+• Publish semester fee records to all hostelers in one click.
+• Mark fees as Paid (manual) or verify UPI payments by transaction ID.
+• Create, edit, and pin announcements for residents.
+• Manage the daily and weekly mess menu.
+• View and manage all complaints across the hostel.
+
+─── KEY FEATURES ─────────────────────────────
+
+✅ Role-based access — Hosteler, Staff, and Admin dashboards
+✅ Real-time data sync powered by Firebase Firestore
+✅ Complaint system with image & video attachment support
+✅ In-app chat between hostelers and staff per complaint
+✅ UPI fee payment with one-tap redirect & transaction tracking
+✅ CDN-powered profile photos & complaint media uploads
+✅ Roommate viewer — see who shares your room
+✅ Infrastructure management — Blocks, Floors, Rooms
+✅ Announcements with rich content for all residents
+✅ Mess menu management by administrators
+✅ Soft-delete user management (preserves history)
+✅ Premium dark-mode UI with glassmorphism design
+
+─── SECURITY & PRIVACY ───────────────────────
+
+🔒 Secured with Firebase Authentication
+🔒 Role-based Firestore security rules
+🔒 UPI payments handled entirely by your UPI app — no bank data stored
+🔒 CDN uploads protected with API token authentication
+
+TS Hostel Management is built and maintained by TechSavvy Solution.
+Official Website: techsavvysolution.in
+Support: info@techsavvysolution.in
+
+
+═══════════════════════════════════════════════
+  4. APP CATEGORY
+═══════════════════════════════════════════════
+
+  Primary:   Education
+  Secondary: Productivity  (or "Tools")
+
+
+═══════════════════════════════════════════════
+  5. TAGS / KEYWORDS  (use in metadata/ASO)
+═══════════════════════════════════════════════
+
+  hostel management, hostel app, room assignment, hostel fee, complaint tracking,
+  mess menu, student hostel, PG management, hostel admin, dormitory management,
+  college hostel, fee payment UPI, hostel complaints, roommate finder, hostel staff
+
+
+═══════════════════════════════════════════════
+  6. CONTENT RATING
+═══════════════════════════════════════════════
+
+  Everyone (ESRB) / PEGI 3 — No violence, no gambling, no mature content.
+  Age Appropriate: 13+  (educational institution use, requires institutional access)
+
+
+═══════════════════════════════════════════════
+  7. APP DETAILS
+═══════════════════════════════════════════════
+
+  Developer Name     : TechSavvy Solution
+  Developer Website  : https://techsavvysolution.in
+  Developer Email    : info@techsavvysolution.in
+  Privacy Policy URL : https://techsavvysolution.in/privacy-policy
+  Package Name       : com.techsavvy.tshostelmanagement
+
+
+═══════════════════════════════════════════════
+  8. WHAT'S NEW  (v1.0.0 — Initial Release)
+═══════════════════════════════════════════════
+
+🎉 Welcome to TS Hostel Management!
+
+This is the first official release of the app. Here's what's included:
+
+• Full hosteler dashboard with room, fee, and complaint tracking
+• Real-time complaint system with image/video attachments and in-app chat
+• UPI fee payment integration with transaction tracking
+• Admin panel for managing users, rooms, floors, blocks, fees & announcements
+• Staff portal for complaint management and resolution
+• Mess menu management and daily announcements
+• Roommate viewer — know who's in your room
+• Premium dark-mode UI with profile photo support
+
+
+═══════════════════════════════════════════════
+  9. FEATURE GRAPHIC — AI GENERATION PROMPTS
+═══════════════════════════════════════════════
+
+  Specs: 1024 × 500 px · PNG or JPG · No alpha channel · No rounded corners
+         (Google will apply its own rounding in the store)
+
+  ── PROMPT A (Best for ChatGPT / DALL·E / Stable Diffusion) ──
+
+  "Create a wide format (1024x500px) Play Store feature graphic for a mobile app
+  called 'TS Hostel Management' by TechSavvy Solution. Use a deep dark navy
+  background (#010413). On the left third, display the bold white app name
+  'TS Hostel Management' in a modern sans-serif font with a glowing green (#4ADE80)
+  underline accent, and a smaller subtitle 'Your Smart Hostel Companion' in gray.
+  Below that, add a small badge that says 'by TechSavvy Solution' in green.
+  On the right two-thirds, show three floating glassmorphism UI cards at a subtle
+  3D angle — one showing a room assignment card with a room number and student
+  name, one showing a fee payment status chip (Paid in green), and one showing
+  a complaint tracker with status tags. Cards should have a semi-transparent
+  dark glass background with green glowing borders. Background should have
+  a very subtle dot-grid or constellation pattern in dark indigo. No phone frames.
+  Color palette: #010413 black-navy, #4ADE80 green, #1E293B card bg, pure white
+  text. Wide cinematic 2:1 banner composition. Professional, premium, modern."
+
+  ── PROMPT B (Compact — for Gemini / Canva AI / Ideogram) ──
+
+  "Play Store feature banner 1024x500, app name: TS Hostel Management, dark navy
+  background, glowing green (#4ADE80) accents, floating glassmorphism cards showing
+  room assignment, fee payment, and complaint tracking UI, subtitle 'Your Smart
+  Hostel Companion', modern bold sans-serif typography, premium dark tech aesthetic,
+  no device frames, wide 2:1 banner layout."
+
+  ── NOTES FOR MANUAL DESIGN (Canva / Figma) ──
+
+  • Canvas size     : 1024 × 500 px
+  • Background      : #010413 or dark radial gradient (#0D1B2A → #010413)
+  • Primary accent  : #4ADE80 (green glow)
+  • Secondary       : #1E293B (card backgrounds)
+  • Font suggestion  : Inter Bold / Outfit Bold for headline
+  • Left padding    : ~80px
+  • Do NOT place critical content within 20px of edges (safe zone)
+  • File format     : PNG, no transparency (JPG also accepted by Google)
+
+
+═══════════════════════════════════════════════
+  10. SCREENSHOTS RECOMMENDED SET  (for Play Store)
+═══════════════════════════════════════════════
+
+  Minimum 2 required, 8 recommended. Capture these screens:
+
+  1. Hosteler Home Screen          – Quick overview with announcements & complaint preview
+  2. Complaint Raise Screen        – With file attachment UI shown
+  3. Complaint Detail & Chat       – Chat UI with staff
+  4. Fee Payment Screen            – UPI payment flow / fee record card
+  5. Roommates Screen              – Room banner + roommate cards
+  6. Profile Screen                – Premium card with room/floor/block info
+  7. Admin Dashboard               – Admin home with stats
+  8. Room Detail (Infrastructure)  – Room capacity stats + student cards
+
+  Format: PNG or JPG · Ratio: 9:16 (portrait) or 16:9 (landscape)
+  Recommended size: 1080 × 1920 px (portrait)
+
+
+═══════════════════════════════════════════════
+  11. PROMO VIDEO (Optional but recommended)
+═══════════════════════════════════════════════
+
+  Duration: 30 seconds to 2 minutes
+  Format: YouTube URL (public or unlisted)
+
+  Suggested flow:
+  0:00 – App logo + tagline animation
+  0:05 – Hosteler home screen walkthrough
+  0:15 – Raise a complaint with photo attachment
+  0:25 – Staff resolving complaint via chat
+  0:35 – Fee payment via UPI
+  0:45 – Admin managing rooms and users
+  0:55 – Outro with website + support email
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  END OF PLAY STORE LISTING DOCUMENT
+  TechSavvy Solution · techsavvysolution.in · info@techsavvysolution.in
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
